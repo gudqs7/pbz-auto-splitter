@@ -1,0 +1,24 @@
+# Generated build output
+Source/bin/
+Source/OodleCleanRoom/bin/
+Source/OodleCleanRoom/obj/
+Source/OodleCleanRoom/vectors/*.expected
+Source/OodleCleanRoom/vectors/*.oodle
+Source/OodleCleanRoom/vectors/manifest.json
+
+# Local packaging output
+dist/
+*.zip
+
+# Local logs and diagnostics
+*.log
+*.dmp
+*.pid
+
+# Editor and OS files
+.vs/
+.vscode/
+*.user
+Thumbs.db
+Desktop.ini
+.DS_Store

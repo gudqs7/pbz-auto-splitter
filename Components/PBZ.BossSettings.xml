@@ -1,0 +1,66 @@
+<!-- BossRecord has no mainline flag; groups are a path/name heuristic. -->
+<Settings>
+    <Setting Id="BossSplits" Label="Boss 击杀自动打点" State="true">
+        <Setting Id="BossMain" Label="主线 Boss（启发式分组）" State="true">
+            <Setting Id="Boss_BP_Monster_ZuoShang" Label="左殇" State="true"/>
+            <Setting Id="Boss_BP_Monster_HookMan_HorseCartCombat" Label="钩者（马车战）" State="true"/>
+            <Setting Id="Boss_BP_Monster_YuCong_FirstTime" Label="御骢（初见）" State="true"/>
+            <Setting Id="Boss_BP_Monster_PengMeng_Axe" Label="彭猛（斧）" State="true"/>
+            <Setting Id="Boss_BP_Monster_AHua_GuiTouDao" Label="阿华（鬼头刀）" State="true"/>
+            <Setting Id="Boss_BP_Monster_HookMan" Label="钩者" State="true"/>
+            <Setting Id="Boss_BP_Monster_HookMan_P2" Label="钩者·二阶段" State="true"/>
+            <Setting Id="Boss_BP_Monster_MoTian_LongZhu_01" Label="莫天·龙柱" State="true"/>
+            <Setting Id="Boss_BP_Monster_HuaQianXIao" Label="花千笑" State="true"/>
+            <Setting Id="Boss_BP_Monster_JingYe" Label="静夜" State="true"/>
+            <Setting Id="Boss_BP_Monster_LuanShi" Label="乱世" State="true"/>
+            <Setting Id="Boss_BP_Monster_ChiLian" Label="赤练" State="true"/>
+            <Setting Id="Boss_BP_Monster_ChiLian_P2" Label="赤练·二阶段" State="true"/>
+            <Setting Id="Boss_BP_Monster_BiYuan" Label="碧渊" State="true"/>
+            <Setting Id="Boss_BP_Monster_CanQu_BiHai" Label="残躯·碧海" State="true"/>
+            <Setting Id="Boss_BP_Monster_Danghui" Label="当归" State="true"/>
+            <Setting Id="Boss_BP_Monster_FemaleVessel_YuZan" Label="女容器·玉簪" State="true"/>
+            <Setting Id="Boss_BP_Monster_MuXiaoKui" Label="MuXiaoKui（待确认）" State="true"/>
+            <Setting Id="Boss_BP_Monster_MuXiaoKui_P2" Label="MuXiaoKui 二阶段（待确认）" State="true"/>
+            <Setting Id="Boss_BP_Monster_GuiChai_Red" Label="鬼差·红" State="true"/>
+            <Setting Id="Boss_BP_Monster_GuiChai_Red_P2" Label="鬼差·红 二阶段" State="true"/>
+            <Setting Id="Boss_BP_Monster_GuWanYue" Label="古万月" State="true"/>
+            <Setting Id="Boss_BP_Monster_ChangHong_Spear" Label="长虹（枪）" State="true"/>
+            <Setting Id="Boss_BP_Monster_ChangHong_P2" Label="长虹 二阶段" State="true"/>
+            <Setting Id="Boss_BP_Monster_GuiChai_Yellow_ShuangGou" Label="鬼差·黄（双钩）" State="true"/>
+            <Setting Id="Boss_BP_Monster_YingMei_RedShadowBoneBlade" Label="影魅·红影骨刃" State="true"/>
+            <Setting Id="Boss_BP_Monster_LeiDang" Label="雷荡" State="true"/>
+            <Setting Id="Boss_BP_Monster_LeiDang_P2" Label="雷荡 二阶段" State="true"/>
+            <Setting Id="Boss_BP_Monster_YanQianSui" Label="阎千岁" State="true"/>
+            <Setting Id="Boss_BP_Monster_MoTian" Label="莫天" State="true"/>
+            <Setting Id="Boss_BP_Monster_ZuoShang_Ending" Label="左殇（结局）" State="true"/>
+            <Setting Id="Boss_BP_Monster_ZuoShang_P2" Label="左殇 二阶段" State="true"/>
+        </Setting>
+        <Setting Id="BossElite" Label="精英 / 支线 Boss" State="true">
+            <Setting Id="Boss_BP_Monster_MobMan_Elite_Sword" Label="剑客精英" State="true"/>
+            <Setting Id="Boss_BP_Monster_Zhuobi" Label="卓臂（精英）" State="true"/>
+            <Setting Id="Boss_BP_Monster_WuXuan" Label="WuXuan（待确认）" State="false"/>
+            <Setting Id="Boss_BP_Monster_Maddoctor_Elite" Label="疯医（精英）" State="false"/>
+            <Setting Id="Boss_BP_Monster_LionDancer" Label="舞狮" State="false"/>
+            <Setting Id="Boss_BP_Monster_LionDancer_P2" Label="舞狮 二阶段" State="false"/>
+            <Setting Id="Boss_BP_Monster_PowerMan" Label="力士" State="false"/>
+            <Setting Id="Boss_BP_Monster_PowerMan_P2" Label="力士 二阶段" State="false"/>
+            <Setting Id="Boss_BP_Monster_JadeMaskMan" Label="玉面郎君（待确认）" State="false"/>
+            <Setting Id="Boss_BP_Monster_MBoss" Label="M Boss（待确认）" State="false"/>
+            <Setting Id="Boss_BP_Monster_MBossVariants" Label="M Boss 变体（待确认）" State="false"/>
+        </Setting>
+        <Setting Id="BossChallenge" Label="冷屠 / 挑战 Boss（可选）" State="false">
+            <Setting Id="Boss_BP_Monster_GuiChai_Yellow_MoDao" Label="鬼差·黄（魔刀/冷屠）" State="false"/>
+            <Setting Id="Boss_BP_Monster_GuiChai_Cyan_ShuangYue" Label="鬼差·青（双钺/冷屠）" State="false"/>
+            <Setting Id="Boss_BP_Monster_FemaleVessel_YuDing" Label="女容器·玉鼎（冷屠）" State="false"/>
+            <Setting Id="Boss_BP_Monster_Scavenger" Label="拾荒者（冷屠）" State="false"/>
+            <Setting Id="Boss_BP_Monster_YuBi" Label="玉璧（冷屠）" State="false"/>
+            <Setting Id="Boss_BP_Monster_LengTu" Label="冷屠" State="false"/>
+            <Setting Id="Boss_BP_Monster_MengHua" Label="梦华" State="false"/>
+            <Setting Id="Boss_BP_Monster_YanYan_Club" Label="燕燕（棍）" State="false"/>
+            <Setting Id="Boss_BP_Monster_QiShu_Du" Label="奇术·毒" State="false"/>
+            <Setting Id="Boss_BP_Monster_QiShu_Lei" Label="奇术·雷" State="false"/>
+            <Setting Id="Boss_BP_Monster_QiShu_Huo" Label="奇术·火" State="false"/>
+            <Setting Id="Boss_BP_Monster_FengXueDaoKe" Label="风雪刀客" State="false"/>
+        </Setting>
+    </Setting>
+</Settings>
