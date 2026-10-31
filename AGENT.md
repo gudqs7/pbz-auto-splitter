@@ -6,10 +6,13 @@ Blade Zero LiveSplit auto splitter. Read `README.md` and the relevant file under
 
 ## Runtime contract
 
-- `Components/PBZLoadRemover.asl` is the LiveSplit entry point.
-- The ASL loads `Components/asl-help`, a language-matched boss settings XML,
-  and `Components/PBZSaveReader.dll`. It checks the full culture name, then the
-  base language, before falling back to `Components/PBZ.BossSettings.xml`.
+- `Components/PBZ-AutoSplitter.asl` is the default LiveSplit entry point and is
+  a memory-only Boss auto splitter.
+- `Components/PBZ-AutoSplitter_BySave.asl` is the retained save-file variant.
+- Both ASLs load `Components/asl-help` and a language-matched boss settings XML.
+  They check the full culture name, then the base language, before falling back
+  to `Components/PBZ.BossSettings.xml`.
+- Only the BySave variant loads `Components/PBZSaveReader.dll`.
 - `PBZSaveReader.dll` exposes `PBZ.SaveReader` and must remain compatible with
   the reflection calls made by the ASL.
 - `OodleCleanRoom` is compiled into `PBZSaveReader.dll`; it is not a separate
@@ -25,7 +28,10 @@ Blade Zero LiveSplit auto splitter. Read `README.md` and the relevant file under
 - `Source/SaveReader.Json.cs`: minimal boss-counter JSON parser.
 - `Source/GameOodleDecompressor.cs`: game-process Oodle fallback.
 - `Source/OodleCleanRoom/src`: clean-room Mermaid decoder.
-- `Components/PBZLoadRemover.asl`: memory offsets, load detection, split queue.
+- `Components/PBZ-AutoSplitter.asl`: memory offsets, load detection, live Boss
+  tags/health/actor tracking, and split queue.
+- `Components/PBZ-AutoSplitter_BySave.asl`: prior save-backed Boss split
+  implementation.
 
 ## Build
 
@@ -58,7 +64,7 @@ executable and an Oodle DLL path to `PBZSaveReader.Benchmark.exe`.
   machine-specific absolute paths.
 - Do not change the default boss toggles without checking the XML against a
   real save and documenting the reason.
-- Memory offsets in `PBZLoadRemover.asl` are tied to a specific game build.
+- Memory offsets in both ASLs are tied to build `CL-301524_JKS-17219`.
   Update them only with fresh validation and a build-version note.
 - Preserve the `PBZ.SaveReader` public API used by the ASL unless the ASL is
   updated in the same change.
@@ -70,7 +76,8 @@ executable and an Oodle DLL path to `PBZSaveReader.Benchmark.exe`.
 
 1. Build `Components/PBZSaveReader.dll`.
 2. Run the clean-room vector tests.
-3. Verify the ASL still parses in LiveSplit.
-4. Smoke-test timer start, loading pause, boss baseline, and one enabled split.
-5. Update `Version` in `SaveReader.Api.cs`, `README.md`, and `CHANGELOG.md`.
-6. Package only after the repository is clean.
+3. Verify both ASLs still parse in LiveSplit.
+4. Smoke-test memory-only Boss detection and one enabled split.
+5. Repeat the same split with the BySave variant when touching save parsing.
+6. Update `Version` in `SaveReader.Api.cs`, `README.md`, and `CHANGELOG.md`.
+7. Package only after the repository is clean.

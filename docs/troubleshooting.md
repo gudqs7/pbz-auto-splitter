@@ -2,11 +2,14 @@
 
 ## The auto splitter does not appear
 
-- Confirm all five files from `Components` are present in LiveSplit's
+- Confirm the required files from `Components` are present in LiveSplit's
   `Components` directory.
-- Load `PBZLoadRemover.asl` through LiveSplit's Scriptable Auto Splitter editor.
+- Load `PBZ-AutoSplitter.asl` through LiveSplit's Scriptable Auto Splitter editor.
 - Check that `asl-help` and the matching `PBZ.BossSettings*.xml` files are next
   to the ASL.
+
+To use the previous save-backed implementation, select
+`PBZ-AutoSplitter_BySave.asl` manually and keep `PBZSaveReader.dll` installed.
 
 ## `save reader load failed`
 
@@ -25,6 +28,20 @@ The script could not find `PBZSaveGame.sav`.
 - Keep the save directory readable by the LiveSplit process.
 
 ## No boss splits
+
+Memory-only variant:
+
+- The process must be the full `PBZ.exe` with module size `0x1EC54000`.
+- The Boss must appear in the player's `BeHatredList`.
+- The Boss class must have a matching enabled `Boss_BP_Monster_*` setting.
+- Check `Logs/PBZ-AutoSplitter.log` for `boss appeared`, `boss died`, and
+  `boss split`.
+
+`boss removal not confirmed` can appear after a successful split when the dead
+Boss actor remains alive in memory for more than the two-second grace period.
+It does not undo a death or split that was already logged.
+
+Save-backed variant:
 
 - Start the timer before killing the boss. The first read establishes a
   baseline, and the split requires a later kill-count increase.

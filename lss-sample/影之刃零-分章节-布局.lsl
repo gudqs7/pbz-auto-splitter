@@ -286,7 +286,7 @@
       <Path>LiveSplit.ScriptableAutoSplit.dll</Path>
       <Settings>
         <Version>1.5</Version>
-        <ScriptPath>D:\soft\e-game\LiveSplit_1.8.29\Components\PBZLoadRemover.asl</ScriptPath>
+        <ScriptPath>D:\soft\e-game\LiveSplit_1.8.29\Components\PBZ-AutoSplitter.asl</ScriptPath>
         <Start>True</Start>
         <CustomSettings />
       </Settings>

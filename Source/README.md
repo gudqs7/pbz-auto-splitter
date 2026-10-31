@@ -1,7 +1,7 @@
 # Source overview
 
 `PBZ.SaveReader` is the managed save decoder loaded by
-`Components/PBZLoadRemover.asl`.
+`Components/PBZ-AutoSplitter_BySave.asl`.
 
 The production path reads only the `__Advanced__` record:
 

@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Renamed the save-file implementation to `PBZ-AutoSplitter_BySave.asl`.
+- Added `PBZ-AutoSplitter.asl`, a memory-only Boss auto splitter using active
+  combat actors, gameplay tags, health, and actor destruction.
+- Added transition-only file logging for Boss appearance, health milestones,
+  death, and split events.
+- Fixed memory Boss detection when `BeHatredList` becomes empty and its array
+  pointer is cleared in the same update.
 - Added English boss settings selected automatically from the Windows UI
   language, with the existing XML as the fallback.
 - Grouped bosses by map and ordered them by the save-record kill and encounter

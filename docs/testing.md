@@ -49,14 +49,22 @@ legacy reader or running game is present.
 
 After automated tests pass:
 
-1. Copy the five runtime files into a test LiveSplit `Components` directory.
-2. Load `PBZLoadRemover.asl` and confirm the settings tree appears.
+1. Copy the required runtime files into a test LiveSplit `Components` directory.
+2. Load `PBZ-AutoSplitter.asl` and confirm the settings tree appears.
 3. Confirm the script log selects the expected language-specific XML.
-4. Start a new timer and confirm a boss baseline is logged.
+4. Start a new timer and confirm the game process/module binds successfully.
 5. Enter a loading screen and confirm game time pauses.
 6. Return to gameplay and confirm game time resumes.
-7. Defeat one enabled test boss and confirm one split is produced.
-8. Reset and verify the pending queue and baseline are cleared.
+7. Defeat one enabled test boss and confirm exactly one split is produced.
+8. Verify a live Boss leaving combat without dying does not split.
+9. Test a Boss death where the actor is destroyed in the same frame.
+10. Reset and verify the pending queue and consumed-Boss set are cleared.
+
+Save-backed variant:
+
+1. Load `PBZ-AutoSplitter_BySave.asl`.
+2. Start a new timer and confirm a Boss baseline is logged.
+3. Defeat one enabled test Boss and confirm one split is produced.
 
 ## Compatibility evidence
 

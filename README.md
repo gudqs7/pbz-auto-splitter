@@ -2,17 +2,19 @@
 
 Unofficial LiveSplit auto splitter for Phantom Blade Zero. It pauses game time
 while the game is loading, starts the timer when gameplay begins, and creates
-boss splits from the game's save file.
+boss splits directly from live game memory. A save-backed variant remains
+available for comparison and fallback.
 
 > Compatibility: version 2.2.0 was validated against game build
 > `CL-301524_JKS-17219`. Game updates can change the memory layout used for
-> loading detection. Save-file boss tracking and the clean-room decoder are
-> independent of those offsets.
+> loading detection and memory-only boss tracking. Save-file boss tracking and
+> the clean-room decoder are independent of those offsets.
 
 ## Features
 
 - Load removal and game-time pause for menus, front-end worlds, and loading.
-- Boss kill tracking from `PBZSaveGame.sav`, independent of live boss memory.
+- Memory-only boss kill tracking in the default auto splitter.
+- A legacy save-file variant retained as `PBZ-AutoSplitter_BySave.asl`.
 - Boss split groups with individual toggles in the LiveSplit settings.
 - Chinese and English boss settings selected automatically from the Windows UI
   language.
@@ -33,14 +35,22 @@ boss splits from the game's save file.
 1. Close LiveSplit.
 2. Copy the following items from `Components` into the LiveSplit `Components`
    directory:
-   - `PBZLoadRemover.asl`
+   - `PBZ-AutoSplitter.asl` (memory-only, recommended)
+   - `PBZ-AutoSplitter_BySave.asl` (save-file variant, optional)
    - `PBZ.BossSettings.xml`
    - `PBZ.BossSettings.en.xml`
-   - `PBZSaveReader.dll`
    - `asl-help`
+   - `PBZSaveReader.dll` only when using the BySave variant
 3. Start LiveSplit.
-4. Add `PBZLoadRemover.asl` as a Scriptable Auto Splitter.
+4. Add `PBZ-AutoSplitter.asl` as a Scriptable Auto Splitter.
 5. Enable the desired bosses under the auto splitter settings.
+
+`PBZ-AutoSplitter.asl` reads live Boss actors, active combat tags, health, and
+death/destruction edges directly from the game process. It does not load
+`PBZSaveReader.dll`, inspect save files, or wait for a file write.
+
+`PBZ-AutoSplitter_BySave.asl` is the previous save-file implementation. Select
+it manually if you prefer save-backed kill tracking or need it as a comparison.
 
 The script first looks for a settings file matching the full Windows UI culture,
 then the base language, such as `PBZ.BossSettings.en.xml`. If neither exists, it
@@ -48,14 +58,13 @@ loads `PBZ.BossSettings.xml`. Keep both XML files next to the ASL and DLL.
 
 ## Usage
 
-Start the LiveSplit timer before beginning a run. The script:
+Start the LiveSplit timer before beginning a run. The default script:
 
-1. Finds the newest `PBZSaveGame.sav` beneath
-   `ProjectPBZ\Saved\SaveGames`.
-2. Captures the current boss counters when the timer starts.
-3. Watches for changed counters after the save file is updated.
-4. Queues an enabled boss setting when its kill count increases.
-5. Splits on the next LiveSplit update cycle.
+1. Resolves the local player through fixed UE object pointers.
+2. Reads the player's active `BeHatredList`.
+3. Matches active Boss actor classes against the enabled settings.
+4. Tracks `CharacterState.Dead`, health, and actor destruction.
+5. Queues a split immediately when a watched Boss dies.
 
 Main-story and side-boss groups in the default XML are heuristics. Adjust the
 toggles to match the run category.

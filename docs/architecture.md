@@ -1,44 +1,50 @@
 # Architecture
 
-The project has two independent behaviors: loading detection from live game
-memory and boss split tracking from the save file.
+The default project uses live game memory for both loading detection and Boss
+split tracking. The retained BySave variant independently tracks Boss records
+from the save file.
 
 ## Data flow
 
 ```mermaid
 flowchart TD
-    A[PBZLoadRemover.asl] --> B[asl-help memory pointers]
-    A --> C[PBZSaveReader.dll]
-    C --> D[Find newest PBZSaveGame.sav]
-    D --> E[Parse PBZS index]
-    E --> F[AES-256-GCM decrypt]
-    F --> G[Select __Advanced__ chunk]
-    G --> H[OodleCleanRoom Mermaid decoder]
-    H -->|unsupported format| I[PBZ.exe embedded Oodle fallback]
-    H --> J[Stream BossRecord kill counts]
-    I --> J
-    J --> K[ASL baseline comparison]
-    K --> L[Enabled boss split]
+    A[PBZ-AutoSplitter.asl] --> B[asl-help memory pointers]
+    B --> C[Player BeHatredList]
+    C --> D[Boss class matching]
+    D --> E[Dead tag / health / destruction]
+    E --> F[Enabled boss split]
+
+    G[PBZ-AutoSplitter_BySave.asl] --> H[PBZSaveReader.dll]
+    H --> I[PBZSaveGame.sav BossRecord]
+    I --> J[Save-backed boss split]
 ```
 
 ## LiveSplit ASL
 
-`Components/PBZLoadRemover.asl` owns the timer-facing behavior:
+`Components/PBZ-AutoSplitter.asl` owns the default timer-facing behavior:
 
 - memory pointer validation for the supported game build
 - front-end and loading detection
 - game-time pause state
-- save-file change detection
-- boss baseline and pending split queue
+- active Boss actor and combat-tag tracking
+- Boss health/death/destruction handling
+- pending split queue
 
 The loading detection reads a layered pointer chain and resolves the current
 world name from the Unreal `FName` pool. If any pointer or flag fails validation,
 the script pauses rather than reporting gameplay.
 
+The memory splitter watches the player's `BeHatredList`, matches actor classes to
+the configured Boss settings, and splits on an observed `CharacterState.Dead`
+tag or a validated actor destruction edge. It keeps a two-second grace window so
+an actor leaving combat while still alive does not split.
+
+`Components/PBZ-AutoSplitter_BySave.asl` is the previous save-backed variant and
+uses `PBZSaveReader.dll`; it remains available for comparison and fallback.
+
 ## Save reader
 
-`Components/PBZSaveReader.dll` is the only managed component loaded by the ASL.
-It contains:
+`Components/PBZSaveReader.dll` is loaded only by the BySave variant. It contains:
 
 - container and index parsing
 - AES-256-GCM decryption through Windows CNG
