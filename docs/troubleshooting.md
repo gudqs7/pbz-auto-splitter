@@ -2,10 +2,11 @@
 
 ## The auto splitter does not appear
 
-- Confirm all four files from `Components` are present in LiveSplit's
+- Confirm all five files from `Components` are present in LiveSplit's
   `Components` directory.
 - Load `PBZLoadRemover.asl` through LiveSplit's Scriptable Auto Splitter editor.
-- Check that `asl-help` and `PBZ.BossSettings.xml` are next to the ASL.
+- Check that `asl-help` and the matching `PBZ.BossSettings*.xml` files are next
+  to the ASL.
 
 ## `save reader load failed`
 

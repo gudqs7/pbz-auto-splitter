@@ -49,13 +49,14 @@ legacy reader or running game is present.
 
 After automated tests pass:
 
-1. Copy the four runtime files into a test LiveSplit `Components` directory.
+1. Copy the five runtime files into a test LiveSplit `Components` directory.
 2. Load `PBZLoadRemover.asl` and confirm the settings tree appears.
-3. Start a new timer and confirm a boss baseline is logged.
-4. Enter a loading screen and confirm game time pauses.
-5. Return to gameplay and confirm game time resumes.
-6. Defeat one enabled test boss and confirm one split is produced.
-7. Reset and verify the pending queue and baseline are cleared.
+3. Confirm the script log selects the expected language-specific XML.
+4. Start a new timer and confirm a boss baseline is logged.
+5. Enter a loading screen and confirm game time pauses.
+6. Return to gameplay and confirm game time resumes.
+7. Defeat one enabled test boss and confirm one split is produced.
+8. Reset and verify the pending queue and baseline are cleared.
 
 ## Compatibility evidence
 

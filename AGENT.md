@@ -7,8 +7,9 @@ Blade Zero LiveSplit auto splitter. Read `README.md` and the relevant file under
 ## Runtime contract
 
 - `Components/PBZLoadRemover.asl` is the LiveSplit entry point.
-- The ASL loads `Components/asl-help`, `Components/PBZ.BossSettings.xml`, and
-  `Components/PBZSaveReader.dll`.
+- The ASL loads `Components/asl-help`, a language-matched boss settings XML,
+  and `Components/PBZSaveReader.dll`. It checks the full culture name, then the
+  base language, before falling back to `Components/PBZ.BossSettings.xml`.
 - `PBZSaveReader.dll` exposes `PBZ.SaveReader` and must remain compatible with
   the reflection calls made by the ASL.
 - `OodleCleanRoom` is compiled into `PBZSaveReader.dll`; it is not a separate

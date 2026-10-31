@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Added English boss settings selected automatically from the Windows UI
+  language, with the existing XML as the fallback.
+- Grouped bosses by map and ordered them by the save-record kill and encounter
+  sequence.
+
 ## 2.2.0 - 2026-10-31
 
 - Added a pure C# clean-room Oodle Mermaid decoder.

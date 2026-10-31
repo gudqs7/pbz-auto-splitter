@@ -14,6 +14,8 @@ boss splits from the game's save file.
 - Load removal and game-time pause for menus, front-end worlds, and loading.
 - Boss kill tracking from `PBZSaveGame.sav`, independent of live boss memory.
 - Boss split groups with individual toggles in the LiveSplit settings.
+- Chinese and English boss settings selected automatically from the Windows UI
+  language.
 - AES-256-GCM save container decryption.
 - Pure C# Oodle Mermaid decoding, with no external Oodle DLL required.
 - Automatic fallback to the Oodle decoder embedded in `PBZ.exe` when a future
@@ -33,14 +35,16 @@ boss splits from the game's save file.
    directory:
    - `PBZLoadRemover.asl`
    - `PBZ.BossSettings.xml`
+   - `PBZ.BossSettings.en.xml`
    - `PBZSaveReader.dll`
    - `asl-help`
 3. Start LiveSplit.
 4. Add `PBZLoadRemover.asl` as a Scriptable Auto Splitter.
 5. Enable the desired bosses under the auto splitter settings.
 
-The script loads boss settings from `Components\PBZ.BossSettings.xml`. Keep the
-XML next to the ASL and DLL.
+The script first looks for a settings file matching the full Windows UI culture,
+then the base language, such as `PBZ.BossSettings.en.xml`. If neither exists, it
+loads `PBZ.BossSettings.xml`. Keep both XML files next to the ASL and DLL.
 
 ## Usage
 

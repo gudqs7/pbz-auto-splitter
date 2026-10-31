@@ -8,7 +8,18 @@ startup
 
     try
     {
-        vars.Helper.Settings.CreateFromXml(Path.Combine(componentDir, "PBZ.BossSettings.xml"));
+        string culture = System.Globalization.CultureInfo.CurrentCulture.Name;
+        string settingsPath = Path.Combine(componentDir, "PBZ.BossSettings." + culture + ".xml");
+        if (!File.Exists(settingsPath))
+        {
+            string language = culture.Split('-')[0];
+            settingsPath = Path.Combine(componentDir, "PBZ.BossSettings." + language + ".xml");
+        }
+        if (!File.Exists(settingsPath))
+            settingsPath = Path.Combine(componentDir, "PBZ.BossSettings.xml");
+
+        print("[PBZ] settings culture=" + culture + " file=" + settingsPath);
+        vars.Helper.Settings.CreateFromXml(settingsPath);
     }
     catch (Exception ex)
     {
