@@ -90,7 +90,6 @@ init
 
     vars.WorldName = "";
     vars.LastNameId = -1;
-    vars.Frontend = false;
     vars.Paused = true;
 
     vars.DeadTagIndex = 0x538d8;
@@ -106,9 +105,6 @@ init
     vars.MemoryBossCacheWorld = 0L;
     vars.MemoryBossCacheDest = 0L;
     vars.MemoryBossNextScan = 0L;
-    vars.MemoryBossUpdateCount = 0L;
-    vars.MemoryBossScanCount = 0L;
-    vars.MemoryBossSkippedScanCount = 0L;
 
     vars.ReadFName = (Func<int, string>)(nameId =>
     {
@@ -269,6 +265,42 @@ init
         return settings.ContainsKey(setting) ? setting : null;
     });
 
+    // Read the player's ASC and AttributeSet in the same order as the main
+    // update path. Returning one tuple keeps retries easy to audit.
+    vars.ReadMemoryBossPlayerState = (Func<long[], Tuple<float, float, bool, int>>)(record =>
+    {
+        if (record == null || record.Length < 5) return null;
+        Tuple<float, float, bool> health =
+            ((Func<long, Tuple<float, float, bool>>)vars.ReadHealthPair)(record[3]);
+        int tagFlags = ((Func<long, int>)vars.ReadTagFlags)(record[4]);
+        if (health == null || !health.Item3 || tagFlags < 0) return null;
+        return Tuple.Create(health.Item1, health.Item2, true, tagFlags);
+    });
+
+    // A cleared BeHatredList array is valid when its count is zero.
+    vars.ReadMemoryBossActorList = (Func<long, long[]>)(hatredManager =>
+    {
+        byte[] header = vars.Helper.ReadSpan<byte>(0x10, (IntPtr)(hatredManager + 0xd8));
+        if (header == null || header.Length != 0x10) return null;
+        long actorArray = BitConverter.ToInt64(header, 0x00);
+        int actorCount = BitConverter.ToInt32(header, 0x08);
+        if (actorCount < 0 || actorCount > 128
+            || (actorCount > 0 && actorArray == 0)) return null;
+        return new long[] { actorArray, actorCount };
+    });
+
+    // Tags and health are always read together. Invalid reads return null so
+    // the caller can refresh child pointers and retry once.
+    vars.ReadMemoryBossActorState = (Func<long[], Tuple<int, float, float>>)(record =>
+    {
+        if (record == null || record.Length < 5) return null;
+        int tagFlags = ((Func<long, int>)vars.ReadTagFlags)(record[4]);
+        Tuple<float, float, bool> health =
+            ((Func<long, Tuple<float, float, bool>>)vars.ReadHealthPair)(record[3]);
+        if (tagFlags < 0 || health == null || !health.Item3) return null;
+        return Tuple.Create(tagFlags, health.Item1, health.Item2);
+    });
+
     vars.ResolveMemoryBossPlayer = (Func<bool>)(() =>
     {
         try
@@ -313,7 +345,6 @@ init
         ((Dictionary<long, long>)vars.MemoryBossCheckUntil).Clear();
         ((HashSet<long>)vars.MemoryBossArmed).Clear();
         ((Dictionary<long, float>)vars.MemoryBossLastHealth).Clear();
-        ((Dictionary<long, float>)vars.MemoryBossLastMaxHealth).Clear();
         ((Dictionary<long, bool>)vars.MemoryBossLastDead).Clear();
     });
 
@@ -325,10 +356,37 @@ init
     vars.MemoryBossArmed = new HashSet<long>();
     vars.MemoryBossLoggedAppeared = new HashSet<string>();
     vars.MemoryBossLastHealth = new Dictionary<long, float>();
-    vars.MemoryBossLastMaxHealth = new Dictionary<long, float>();
     vars.MemoryBossLastDead = new Dictionary<long, bool>();
     vars.MemoryBossHealthMilestone = new Dictionary<string, int>();
-    vars.MemoryBossWorld = 0L;
+
+    vars.ForgetMemoryBossActor = (Action<long>)(actor =>
+    {
+        ((Dictionary<long, string>)vars.MemoryBossSeen).Remove(actor);
+        ((Dictionary<long, string>)vars.MemoryBossChecks).Remove(actor);
+        ((Dictionary<long, long>)vars.MemoryBossCheckUntil).Remove(actor);
+        ((HashSet<long>)vars.MemoryBossArmed).Remove(actor);
+    });
+
+    vars.ForgetMemoryBossActorCache = (Action<long>)(actor =>
+    {
+        ((Dictionary<long, long[]>)vars.MemoryBossActorCache).Remove(actor);
+    });
+
+    vars.ForgetMemoryBossActorSamples = (Action<long>)(actor =>
+    {
+        ((Dictionary<long, float>)vars.MemoryBossLastHealth).Remove(actor);
+        ((Dictionary<long, bool>)vars.MemoryBossLastDead).Remove(actor);
+    });
+
+    vars.ResetMemoryBossSession = (Action<bool>)(resetNextScan =>
+    {
+        vars.MemoryBossPending = new Queue<string>();
+        vars.MemoryBossConsumed = new HashSet<string>();
+        vars.MemoryBossLoggedAppeared = new HashSet<string>();
+        vars.MemoryBossHealthMilestone = new Dictionary<string, int>();
+        if (resetNextScan) vars.MemoryBossNextScan = 0L;
+        ((Action)vars.ClearMemoryBossState)();
+    });
 
     vars.QueueMemoryBoss = (Action<string, string>)((setting, reason) =>
     {
@@ -366,7 +424,6 @@ init
         vars.MemoryBossPlayerRecord = null;
         vars.MemoryBossCacheWorld = 0L;
         vars.MemoryBossCacheDest = 0L;
-        vars.MemoryBossWorld = 0L;
         vars.MemoryBossNextScan = 0L;
 
         if (hadState)
@@ -380,12 +437,13 @@ update
 {
     // Fail closed: pause until every pointer, loading flag and world name validates.
     vars.Paused = true;
-    vars.MemoryBossUpdateCount = (long)vars.MemoryBossUpdateCount + 1;
 
     try
     {
         vars.Helper.Update();
         vars.Helper.MapPointers();
+
+        Action<string> invalidateCaches = (Action<string>)vars.InvalidateMemoryBossCaches;
 
         if (current.World == null || (long)current.World == 0
             || current.WorldNameId == null || (int)current.WorldNameId == 0
@@ -396,7 +454,7 @@ update
         long recordClass = vars.Helper.Read<long>(0xdf741c8, 0xc88, 0x80, 0x118, 0x240);
         if (destClass == 0 || recordClass != destClass)
         {
-            ((Action<string>)vars.InvalidateMemoryBossCaches)("dest-class-validation");
+            invalidateCaches("dest-class-validation");
             return;
         }
 
@@ -410,13 +468,13 @@ update
         }
 
         string worldName = (string)vars.WorldName;
-        vars.Frontend = worldName == "Untitled"
+        bool frontend = worldName == "Untitled"
             || worldName == "ServerCheck"
             || worldName.IndexOf("StartMenu", StringComparison.OrdinalIgnoreCase) >= 0;
-        vars.Paused = (byte)current.Loading != 0 || (bool)vars.Frontend;
+        vars.Paused = (byte)current.Loading != 0 || frontend;
         if ((bool)vars.Paused)
         {
-            ((Action<string>)vars.InvalidateMemoryBossCaches)("loading-or-frontend");
+            invalidateCaches("loading-or-frontend");
             return;
         }
 
@@ -427,10 +485,9 @@ update
             || (long)vars.MemoryBossCacheWorld == 0
             || (long)vars.MemoryBossCacheDest == 0)
         {
-            ((Action<string>)vars.InvalidateMemoryBossCaches)("world-or-dest-change");
+            invalidateCaches("world-or-dest-change");
             vars.MemoryBossCacheWorld = world;
             vars.MemoryBossCacheDest = dest;
-            vars.MemoryBossWorld = world;
         }
 
         bool bossRunning = timer.CurrentPhase == TimerPhase.Running
@@ -444,12 +501,19 @@ update
             ? (long)vars.BossScanIntervalTicks
             : (long)vars.IdleBossScanIntervalTicks;
         if (nowTicks < (long)vars.MemoryBossNextScan)
-        {
-            vars.MemoryBossSkippedScanCount = (long)vars.MemoryBossSkippedScanCount + 1;
             return;
-        }
         vars.MemoryBossNextScan = nowTicks + scanInterval;
-        vars.MemoryBossScanCount = (long)vars.MemoryBossScanCount + 1;
+
+        Action clearState = (Action)vars.ClearMemoryBossState;
+        Func<long, long[]> readMeta = (Func<long, long[]>)vars.ReadObjectMeta;
+        Func<long, long[]> readComponents =
+            (Func<long, long[]>)vars.ReadCharacterComponents;
+        Func<long, string> readClassName =
+            (Func<long, string>)vars.ReadObjectClassName;
+        Func<long[], Tuple<float, float, bool, int>> readPlayerState = (Func<long[], Tuple<float, float, bool, int>>)vars.ReadMemoryBossPlayerState;
+        Func<long, long[]> readActorList = (Func<long, long[]>)vars.ReadMemoryBossActorList;
+        Func<long[], Tuple<int, float, float>> readActorState = (Func<long[], Tuple<int, float, float>>)vars.ReadMemoryBossActorState;
+        Func<long, long[], bool> actorIdentityMatches = (Func<long, long[], bool>)vars.MemoryBossActorIdentityMatches;
 
         // Player, HatredManager, AttributeSet and ASC are low-frequency
         // pointers. Reconcile the full fixed path every two seconds, or
@@ -458,8 +522,7 @@ update
         bool resolvePlayer = playerRecord == null || playerRecord.Length < 9;
         if (!resolvePlayer)
         {
-            long[] playerMeta =
-                ((Func<long, long[]>)vars.ReadObjectMeta)(playerRecord[1]);
+            long[] playerMeta = readMeta(playerRecord[1]);
             resolvePlayer = playerMeta == null
                 || playerMeta[0] != playerRecord[5]
                 || playerMeta[1] != playerRecord[6]
@@ -469,76 +532,59 @@ update
 
         if (resolvePlayer && !((Func<bool>)vars.ResolveMemoryBossPlayer)())
         {
-            ((Action)vars.ClearMemoryBossState)();
+            clearState();
             vars.MemoryBossPlayerRecord = null;
             return;
         }
 
         playerRecord = (long[])vars.MemoryBossPlayerRecord;
-        Tuple<float, float, bool> playerHealth =
-            ((Func<long, Tuple<float, float, bool>>)vars.ReadHealthPair)(playerRecord[3]);
-        int playerTagFlags =
-            ((Func<long, int>)vars.ReadTagFlags)(playerRecord[4]);
-        if (playerHealth == null || !playerHealth.Item3 || playerTagFlags < 0)
+        Tuple<float, float, bool, int> playerState = readPlayerState(playerRecord);
+        if (playerState == null)
         {
             vars.MemoryBossPlayerRecord = null;
             if (!((Func<bool>)vars.ResolveMemoryBossPlayer)())
             {
-                ((Action)vars.ClearMemoryBossState)();
+                clearState();
                 return;
             }
 
             playerRecord = (long[])vars.MemoryBossPlayerRecord;
-            playerHealth =
-                ((Func<long, Tuple<float, float, bool>>)vars.ReadHealthPair)(playerRecord[3]);
-            playerTagFlags =
-                ((Func<long, int>)vars.ReadTagFlags)(playerRecord[4]);
-            if (playerHealth == null || !playerHealth.Item3 || playerTagFlags < 0)
+            playerState = readPlayerState(playerRecord);
+            if (playerState == null)
             {
-                ((Action)vars.ClearMemoryBossState)();
+                clearState();
                 return;
             }
         }
 
-        bool playerDead = (playerTagFlags & 1) != 0;
-        if (playerDead || playerHealth.Item1 <= 0.001f)
+        bool playerDead = (playerState.Item4 & 1) != 0;
+        if (playerDead || playerState.Item1 <= 0.001f)
         {
-            ((Action)vars.ClearMemoryBossState)();
+            clearState();
             return;
         }
 
         long hatredManager = playerRecord[2];
-        byte[] actorListHeader = vars.Helper.ReadSpan<byte>(
-            0x10,
-            (IntPtr)(hatredManager + 0xd8));
-        bool actorListValid = actorListHeader != null && actorListHeader.Length == 0x10;
-        long actorArray = actorListValid ? BitConverter.ToInt64(actorListHeader, 0x00) : 0;
-        int actorCount = actorListValid ? BitConverter.ToInt32(actorListHeader, 0x08) : -1;
-        if (actorCount < 0 || actorCount > 128
-            || (actorCount > 0 && actorArray == 0))
+        long[] actorList = readActorList(hatredManager);
+        if (actorList == null)
         {
             vars.MemoryBossPlayerRecord = null;
             if (!((Func<bool>)vars.ResolveMemoryBossPlayer)())
             {
-                ((Action)vars.ClearMemoryBossState)();
+                clearState();
                 return;
             }
 
             playerRecord = (long[])vars.MemoryBossPlayerRecord;
-            hatredManager = playerRecord[2];
-            actorListHeader = vars.Helper.ReadSpan<byte>(
-                0x10,
-                (IntPtr)(hatredManager + 0xd8));
-            actorListValid = actorListHeader != null && actorListHeader.Length == 0x10;
-            actorArray = actorListValid ? BitConverter.ToInt64(actorListHeader, 0x00) : 0;
-            actorCount = actorListValid ? BitConverter.ToInt32(actorListHeader, 0x08) : -1;
-            if (actorCount < 0 || actorCount > 128
-                || (actorCount > 0 && actorArray == 0))
+            actorList = readActorList(playerRecord[2]);
+            if (actorList == null)
             {
-                ((Action)vars.ClearMemoryBossState)();
+                clearState();
                 return;
             }
         }
+        long actorArray = actorList[0];
+        int actorCount = (int)actorList[1];
 
         byte[] actorData = null;
         if (actorCount > 0)
@@ -548,7 +594,7 @@ update
                 (IntPtr)actorArray);
             if (actorData == null || actorData.Length != actorCount * 8)
             {
-                ((Action)vars.ClearMemoryBossState)();
+                clearState();
                 return;
             }
         }
@@ -559,10 +605,12 @@ update
         HashSet<long> armed = (HashSet<long>)vars.MemoryBossArmed;
         HashSet<string> loggedAppeared = (HashSet<string>)vars.MemoryBossLoggedAppeared;
         Dictionary<long, float> lastHealth = (Dictionary<long, float>)vars.MemoryBossLastHealth;
-        Dictionary<long, float> lastMaxHealth = (Dictionary<long, float>)vars.MemoryBossLastMaxHealth;
         Dictionary<long, bool> lastDead = (Dictionary<long, bool>)vars.MemoryBossLastDead;
         Dictionary<string, int> healthMilestone = (Dictionary<string, int>)vars.MemoryBossHealthMilestone;
         Dictionary<long, long[]> actorCache = (Dictionary<long, long[]>)vars.MemoryBossActorCache;
+        Action<long> forgetActor = (Action<long>)vars.ForgetMemoryBossActor;
+        Action<long> forgetActorCache = (Action<long>)vars.ForgetMemoryBossActorCache;
+        Action<long> forgetActorSamples = (Action<long>)vars.ForgetMemoryBossActorSamples;
         HashSet<long> currentActors = new HashSet<long>();
 
         for (int i = 0; i < actorCount; i++)
@@ -570,14 +618,12 @@ update
             long actor = BitConverter.ToInt64(actorData, i * 8);
             if (actor == 0) continue;
 
-            long[] meta = ((Func<long, long[]>)vars.ReadObjectMeta)(actor);
+            long[] meta = readMeta(actor);
             if (meta == null) continue;
 
-            string className =
-                ((Func<long, string>)vars.ReadObjectClassName)(meta[0]);
+            string className = readClassName(meta[0]);
             string setting = ((Func<string, string>)vars.GetBossSetting)(className);
-            if (string.IsNullOrEmpty(setting)) continue;
-            if (!settings.ContainsKey(setting) || !(bool)settings[setting]) continue;
+            if (string.IsNullOrEmpty(setting) || !(bool)settings[setting]) continue;
 
             long[] record;
             if (!actorCache.TryGetValue(actor, out record)
@@ -587,13 +633,12 @@ update
                 || record[1] != meta[1]
                 || record[2] != meta[2])
             {
-                long[] components =
-                    ((Func<long, long[]>)vars.ReadCharacterComponents)(actor);
+                long[] components = readComponents(actor);
                 if (components == null
                     || components[0] <= 0
                     || components[1] <= 0)
                 {
-                    actorCache.Remove(actor);
+                    forgetActorCache(actor);
                     continue;
                 }
 
@@ -606,13 +651,12 @@ update
             }
             else if (nowTicks >= record[5] + (long)vars.PlayerReconcileIntervalTicks)
             {
-                long[] components =
-                    ((Func<long, long[]>)vars.ReadCharacterComponents)(actor);
+                long[] components = readComponents(actor);
                 if (components == null
                     || components[0] <= 0
                     || components[1] <= 0)
                 {
-                    actorCache.Remove(actor);
+                    forgetActorCache(actor);
                     continue;
                 }
                 record[3] = components[1];
@@ -620,13 +664,10 @@ update
                 record[5] = nowTicks;
             }
 
-            int tagFlags = ((Func<long, int>)vars.ReadTagFlags)(record[4]);
-            Tuple<float, float, bool> healthPair =
-                ((Func<long, Tuple<float, float, bool>>)vars.ReadHealthPair)(record[3]);
-            if (tagFlags < 0 || healthPair == null || !healthPair.Item3)
+            Tuple<int, float, float> actorState = readActorState(record);
+            if (actorState == null)
             {
-                long[] refreshed =
-                    ((Func<long, long[]>)vars.ReadCharacterComponents)(actor);
+                long[] refreshed = readComponents(actor);
                 if (refreshed != null
                     && refreshed[0] > 0
                     && refreshed[1] > 0
@@ -635,43 +676,36 @@ update
                     record[3] = refreshed[1];
                     record[4] = refreshed[0];
                     record[5] = nowTicks;
-                    tagFlags = ((Func<long, int>)vars.ReadTagFlags)(record[4]);
-                    healthPair =
-                        ((Func<long, Tuple<float, float, bool>>)vars.ReadHealthPair)(record[3]);
+                    actorState = readActorState(record);
                 }
             }
 
-            if (tagFlags < 0 || healthPair == null || !healthPair.Item3)
+            if (actorState == null)
             {
-                actorCache.Remove(actor);
+                forgetActorCache(actor);
                 continue;
             }
 
             currentActors.Add(actor);
-            bool excluded = (tagFlags & 2) != 0;
-            if (excluded)
+            int tagFlags = actorState.Item1;
+            if ((tagFlags & 2) != 0)
             {
-                seen.Remove(actor);
-                checks.Remove(actor);
-                checkUntil.Remove(actor);
-                armed.Remove(actor);
-                lastHealth.Remove(actor);
-                lastMaxHealth.Remove(actor);
-                lastDead.Remove(actor);
+                // Exclude clears split state but keeps cached child pointers.
+                forgetActor(actor);
+                forgetActorSamples(actor);
                 continue;
             }
 
             bool dead = (tagFlags & 1) != 0;
-            float health = healthPair.Item1;
-            float maxHealth = healthPair.Item2;
+            float health = actorState.Item2;
+            float maxHealth = actorState.Item3;
             lastHealth[actor] = health;
-            lastMaxHealth[actor] = maxHealth;
             lastDead[actor] = dead;
 
             if (!dead && health > 0.001f)
             {
                 armed.Add(actor);
-                if (!excluded && loggedAppeared.Add(setting))
+                if (loggedAppeared.Add(setting))
                 {
                     ((Action<string>)vars.Log)(
                         "boss appeared: setting=" + setting
@@ -683,7 +717,7 @@ update
                         + " phase=" + timer.CurrentPhase.ToString());
                 }
 
-                if (!excluded && maxHealth > 0.001f)
+                if (maxHealth > 0.001f)
                 {
                     float ratio = health / maxHealth;
                     int milestone = 100;
@@ -717,11 +751,8 @@ update
                 ((Action<string, string>)vars.QueueMemoryBoss)(
                     setting,
                     reason + ",health=" + health.ToString("0.##"));
-                seen.Remove(actor);
-                checks.Remove(actor);
-                checkUntil.Remove(actor);
-                armed.Remove(actor);
-                actorCache.Remove(actor);
+                forgetActor(actor);
+                forgetActorCache(actor);
                 continue;
             }
 
@@ -740,13 +771,11 @@ update
 
             long[] record;
             bool identityValid = actorCache.TryGetValue(actor, out record)
-                && ((Func<long, long[], bool>)vars.MemoryBossActorIdentityMatches)(actor, record);
+                && actorIdentityMatches(actor, record);
             if (!identityValid)
             {
-                checks.Remove(actor);
-                checkUntil.Remove(actor);
-                armed.Remove(actor);
-                actorCache.Remove(actor);
+                forgetActor(actor);
+                forgetActorCache(actor);
                 if (bossRunning)
                 {
                     float previousHealth;
@@ -771,13 +800,11 @@ update
             string setting = checks[actor];
             long[] record;
             bool identityValid = actorCache.TryGetValue(actor, out record)
-                && ((Func<long, long[], bool>)vars.MemoryBossActorIdentityMatches)(actor, record);
+                && actorIdentityMatches(actor, record);
             if (!identityValid)
             {
-                checks.Remove(actor);
-                checkUntil.Remove(actor);
-                armed.Remove(actor);
-                actorCache.Remove(actor);
+                forgetActor(actor);
+                forgetActorCache(actor);
                 if (bossRunning)
                 {
                     float previousHealth;
@@ -789,19 +816,16 @@ update
                 continue;
             }
 
-            int tagFlags = ((Func<long, int>)vars.ReadTagFlags)(record[4]);
-            Tuple<float, float, bool> healthPair =
-                ((Func<long, Tuple<float, float, bool>>)vars.ReadHealthPair)(record[3]);
-            bool dead = tagFlags >= 0 && (tagFlags & 1) != 0;
+            Tuple<int, float, float> actorState = readActorState(record);
+            bool stateValid = actorState != null;
+            bool dead = stateValid && (actorState.Item1 & 1) != 0;
             float health = 0.0f;
             float maxHealth = 0.0f;
-            bool stateValid = tagFlags >= 0 && healthPair != null && healthPair.Item3;
             if (stateValid)
             {
-                health = healthPair.Item1;
-                maxHealth = healthPair.Item2;
+                health = actorState.Item2;
+                maxHealth = actorState.Item3;
                 lastHealth[actor] = health;
-                lastMaxHealth[actor] = maxHealth;
                 lastDead[actor] = dead;
             }
 
@@ -812,10 +836,8 @@ update
                 ((Action<string, string>)vars.QueueMemoryBoss)(
                     setting,
                     reason + ",health=" + health.ToString("0.##"));
-                checks.Remove(actor);
-                checkUntil.Remove(actor);
-                armed.Remove(actor);
-                actorCache.Remove(actor);
+                forgetActor(actor);
+                forgetActorCache(actor);
                 continue;
             }
 
@@ -825,16 +847,14 @@ update
                 ((Action<string>)vars.Log)(
                     "boss removal not confirmed: setting=" + setting
                     + " actor=0x" + actor.ToString("X")
-                    + " class=" + ((Func<long, string>)vars.ReadObjectClassName)(record[0])
+                    + " class=" + readClassName(record[0])
                     + " health=" + health.ToString("0.##")
                     + "/" + maxHealth.ToString("0.##")
                     + " dead-tag=" + dead
                     + " world=" + (string)vars.WorldName
                     + " phase=" + timer.CurrentPhase.ToString());
-                checks.Remove(actor);
-                checkUntil.Remove(actor);
-                armed.Remove(actor);
-                actorCache.Remove(actor);
+                forgetActor(actor);
+                forgetActorCache(actor);
             }
         }
 
@@ -845,10 +865,8 @@ update
         {
             if (!currentActors.Contains(actor) && !checks.ContainsKey(actor))
             {
-                actorCache.Remove(actor);
-                lastHealth.Remove(actor);
-                lastMaxHealth.Remove(actor);
-                lastDead.Remove(actor);
+                forgetActorCache(actor);
+                forgetActorSamples(actor);
             }
         }
     }
@@ -889,44 +907,26 @@ split
 
 onStart
 {
-    vars.MemoryBossPending = new Queue<string>();
-    vars.MemoryBossConsumed = new HashSet<string>();
-    vars.MemoryBossLoggedAppeared = new HashSet<string>();
-    vars.MemoryBossHealthMilestone = new Dictionary<string, int>();
-    vars.MemoryBossNextScan = 0L;
-    ((Action)vars.ClearMemoryBossState)();
+    ((Action<bool>)vars.ResetMemoryBossSession)(true);
 }
 
 onReset
 {
-    vars.MemoryBossPending = new Queue<string>();
-    vars.MemoryBossConsumed = new HashSet<string>();
-    vars.MemoryBossLoggedAppeared = new HashSet<string>();
-    vars.MemoryBossHealthMilestone = new Dictionary<string, int>();
-    vars.MemoryBossNextScan = 0L;
-    ((Action)vars.ClearMemoryBossState)();
+    ((Action<bool>)vars.ResetMemoryBossSession)(true);
 }
 
 exit
 {
     vars.Paused = true;
     timer.IsGameTimePaused = true;
-    vars.MemoryBossPending = new Queue<string>();
-    vars.MemoryBossConsumed = new HashSet<string>();
-    vars.MemoryBossLoggedAppeared = new HashSet<string>();
-    vars.MemoryBossHealthMilestone = new Dictionary<string, int>();
-    ((Action)vars.ClearMemoryBossState)();
+    ((Action<bool>)vars.ResetMemoryBossSession)(false);
 }
 
 shutdown
 {
     try
     {
-        vars.MemoryBossPending = new Queue<string>();
-        vars.MemoryBossConsumed = new HashSet<string>();
-        vars.MemoryBossLoggedAppeared = new HashSet<string>();
-        vars.MemoryBossHealthMilestone = new Dictionary<string, int>();
-        ((Action)vars.ClearMemoryBossState)();
+        ((Action<bool>)vars.ResetMemoryBossSession)(false);
     }
     catch {}
 }
