@@ -19,7 +19,7 @@
   <AttemptHistory />
   <Segments>
     <Segment>
-      <Name>“组织”冥主：左殇</Name>
+      <Name>-“组织”冥主：左殇</Name>
       <Icon />
       <SplitTimes>
         <SplitTime name="Personal Best" />
@@ -28,7 +28,7 @@
       <SegmentHistory />
     </Segment>
     <Segment>
-      <Name>-“组织”猎杀者：追命（马车战）{序章}</Name>
+      <Name>{序章}“组织”猎杀者：追命（马车战）</Name>
       <Icon />
       <SplitTimes>
         <SplitTime name="Personal Best" />
@@ -37,7 +37,7 @@
       <SegmentHistory />
     </Segment>
     <Segment>
-      <Name>三张脸的诡异魔偶</Name>
+      <Name>-三张脸的诡异魔偶</Name>
       <Icon />
       <SplitTimes>
         <SplitTime name="Personal Best" />
@@ -109,7 +109,7 @@
       <SegmentHistory />
     </Segment>
     <Segment>
-      <Name>-暗魔天堡之主：魔渊{1.悲泣溪谷}</Name>
+      <Name>{1.悲泣溪谷}暗魔天堡之主：魔渊</Name>
       <Icon />
       <SplitTimes>
         <SplitTime name="Personal Best" />
@@ -118,7 +118,7 @@
       <SegmentHistory />
     </Segment>
     <Segment>
-      <Name>剑痴：花千笑</Name>
+      <Name>-剑痴：花千笑</Name>
       <Icon />
       <SplitTimes>
         <SplitTime name="Personal Best" />
@@ -154,7 +154,7 @@
       <SegmentHistory />
     </Segment>
     <Segment>
-      <Name>-白赤练：献祭之蛇{2.血色森林}</Name>
+      <Name>{2.血色森林}白赤练：献祭之蛇</Name>
       <Icon />
       <SplitTimes>
         <SplitTime name="Personal Best" />
@@ -163,7 +163,7 @@
       <SegmentHistory />
     </Segment>
     <Segment>
-      <Name>守门人拙壁</Name>
+      <Name>-守门人拙壁</Name>
       <Icon />
       <SplitTimes>
         <SplitTime name="Personal Best" />
@@ -226,7 +226,7 @@
       <SegmentHistory />
     </Segment>
     <Segment>
-      <Name>-灭法之法：炎茹{3.陆家村地区}</Name>
+      <Name>{3.陆家村地区}灭法之法：炎茹</Name>
       <Icon />
       <SplitTimes>
         <SplitTime name="Personal Best" />
@@ -235,7 +235,7 @@
       <SegmentHistory />
     </Segment>
     <Segment>
-      <Name>鬼差队长：火流星</Name>
+      <Name>-鬼差队长：火流星</Name>
       <Icon />
       <SplitTimes>
         <SplitTime name="Personal Best" />
@@ -334,7 +334,7 @@
       <SegmentHistory />
     </Segment>
     <Segment>
-      <Name>-灭法之法：雷婷{4.庞镇地区}</Name>
+      <Name>{4.庞镇地区}灭法之法：雷婷</Name>
       <Icon />
       <SplitTimes>
         <SplitTime name="Personal Best" />
@@ -343,7 +343,7 @@
       <SegmentHistory />
     </Segment>
     <Segment>
-      <Name>廿一号·剑偶：“玉璧”{5.正道大营}</Name>
+      <Name>{5.正道大营}廿一号·剑偶：“玉璧”</Name>
       <Icon />
       <SplitTimes>
         <SplitTime name="Personal Best" />
@@ -352,7 +352,7 @@
       <SegmentHistory />
     </Segment>
     <Segment>
-      <Name>鬼差高手：断肠</Name>
+      <Name>-鬼差高手：断肠</Name>
       <Icon />
       <SplitTimes>
         <SplitTime name="Personal Best" />
@@ -379,7 +379,7 @@
       <SegmentHistory />
     </Segment>
     <Segment>
-      <Name>-风雪刀客{6.梅谷湖}</Name>
+      <Name>{6.梅谷湖}风雪刀客</Name>
       <Icon />
       <SplitTimes>
         <SplitTime name="Personal Best" />
@@ -388,7 +388,7 @@
       <SegmentHistory />
     </Segment>
     <Segment>
-      <Name>疯婆子奎艳艳</Name>
+      <Name>-疯婆子奎艳艳</Name>
       <Icon />
       <SplitTimes>
         <SplitTime name="Personal Best" />
@@ -415,7 +415,7 @@
       <SegmentHistory />
     </Segment>
     <Segment>
-      <Name>-荒行子：撕裂锯轮{7.枷笼山}</Name>
+      <Name>{7.枷笼山}荒行子：撕裂锯轮</Name>
       <Icon />
       <SplitTimes>
         <SplitTime name="Personal Best" />
@@ -424,7 +424,7 @@
       <SegmentHistory />
     </Segment>
     <Segment>
-      <Name>十二号·偃月刀偶：“玉鼎”</Name>
+      <Name>-十二号·偃月刀偶：“玉鼎”</Name>
       <Icon />
       <SplitTimes>
         <SplitTime name="Personal Best" />
@@ -451,7 +451,7 @@
       <SegmentHistory />
     </Segment>
     <Segment>
-      <Name>-雷当：独臂虎{8.戏梦山庄}</Name>
+      <Name>{8.戏梦山庄}雷当：独臂虎</Name>
       <Icon />
       <SplitTimes>
         <SplitTime name="Personal Best" />
@@ -460,7 +460,7 @@
       <SegmentHistory />
     </Segment>
     <Segment>
-      <Name>力者和锯者</Name>
+      <Name>-力者和锯者</Name>
       <Icon />
       <SplitTimes>
         <SplitTime name="Personal Best" />
@@ -505,7 +505,7 @@
       <SegmentHistory />
     </Segment>
     <Segment>
-      <Name>-左殇：真龙之躯{9.断魂山}</Name>
+      <Name>{9.断魂山}左殇：真龙之躯</Name>
       <Icon />
       <SplitTimes>
         <SplitTime name="Personal Best" />
