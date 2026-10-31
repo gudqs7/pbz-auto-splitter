@@ -1,13 +1,16 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <Run version="1.7.0">
   <GameIcon />
   <GameName>Phantom Blade Zero</GameName>
   <CategoryName>Any% - 分章节</CategoryName>
-  <LayoutPath></LayoutPath>
+  <LayoutPath>
+  </LayoutPath>
   <Metadata>
     <Run id="" />
-    <Platform usesEmulator="False"></Platform>
-    <Region></Region>
+    <Platform usesEmulator="False">
+    </Platform>
+    <Region>
+    </Region>
     <Variables />
     <CustomVariables />
   </Metadata>
