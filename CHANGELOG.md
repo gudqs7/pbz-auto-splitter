@@ -9,6 +9,11 @@
   death, and split events.
 - Fixed memory Boss detection when `BeHatredList` becomes empty and its array
   pointer is cleared in the same update.
+- Reduced active-combat memory reads by caching UClass names, player/component
+  pointers, and boss Actor child pointers with world/Dest invalidation.
+- Batched GameplayTag reads for Dead and ExcludeFromBossRecord, corrected the
+  tag-entry stride to `0x10`, and limited running combat scans to 50 ms.
+- Added exact module-size and file-version gating for the validated PBZ build.
 - Added English boss settings selected automatically from the Windows UI
   language, with the existing XML as the fallback.
 - Grouped bosses by map and ordered them by the save-record kill and encounter
