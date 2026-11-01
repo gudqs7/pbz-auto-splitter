@@ -57,6 +57,19 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
 For an end-to-end benchmark, pass a save path and, when needed, the game
 executable and an Oodle DLL path to `PBZSaveReader.Benchmark.exe`.
 
+## Runtime synchronization
+
+- `Components` is the packaged runtime source. Keep it in two-way sync with
+  `D:\soft\e-game\LiveSplit_1.8.29\Components`.
+- Before editing any ASL, settings XML, `asl-help`, `PBZSaveReader.dll`, or
+  other runtime file, compare the repository copy with the runtime copy using
+  both `LastWriteTime` and SHA-256. If the runtime copy differs or is newer,
+  inspect and merge that change into the repository first; never overwrite a
+  newer runtime change blindly.
+- After validation, copy every changed runtime file to
+  `D:\soft\e-game\LiveSplit_1.8.29\Components` and verify that both copies have
+  the same SHA-256.
+
 ## Change rules
 
 - Keep all changes scoped to the PBZ auto splitter.
