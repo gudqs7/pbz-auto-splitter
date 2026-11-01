@@ -1,6 +1,8 @@
 <Settings>
     <!-- Groups follow DT_CodexEnemyDataTable.OwnMapID and DT_MapData. BossName_xxx keys are used only for ordering. -->
+    <!-- The master switch only controls automatic split triggering; detection and logging stay active. -->
     <Setting Id="AutoSplitEnabled" Label="Auto Splits Enabled" State="true" />
+    <!-- All Bosses are enabled by default; disable unneeded branches for a specific run. -->
     <Setting Id="BossSplits" Label="Boss Auto Splits" State="true">
         <Setting Id="MapPrologue" Label="Prologue" State="true">
             <Setting Id="Boss_BP_Monster_ZuoShang" Label="Zuo Shang, the Order's Shadow Sovereign" State="true" />
