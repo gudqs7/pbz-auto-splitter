@@ -100,11 +100,16 @@ init
     vars.PlayerReconcileIntervalTicks = TimeSpan.TicksPerSecond * 2;
 
     vars.MemoryBossFNameCache = new Dictionary<int, string>();
+
     vars.MemoryBossClassCache = new Dictionary<long, string>();
+
     vars.MemoryBossActorCache = new Dictionary<long, long[]>();
+
     vars.MemoryBossPlayerRecord = null;
+
     vars.MemoryBossCacheWorld = 0L;
     vars.MemoryBossCacheDest = 0L;
+
     vars.MemoryBossNextScan = 0L;
 
     vars.ReadFName = (Func<int, string>)(nameId =>
@@ -344,16 +349,27 @@ init
     });
 
     vars.MemoryBossPending = new Queue<string>();
+
     vars.MemoryBossConsumed = new HashSet<string>();
+
     vars.MemoryBossSeen = new Dictionary<long, string>();
+
     vars.MemoryBossUnknownSeen = new Dictionary<long, string>();
+
     vars.MemoryBossUnknownMissingSince = new Dictionary<long, long>();
+
     vars.MemoryBossChecks = new Dictionary<long, string>();
+
     vars.MemoryBossCheckUntil = new Dictionary<long, long>();
+
     vars.MemoryBossArmed = new HashSet<long>();
+
     vars.MemoryBossLoggedAppeared = new HashSet<string>();
+
     vars.MemoryBossLastHealth = new Dictionary<long, float>();
+
     vars.MemoryBossLastDead = new Dictionary<long, bool>();
+
     vars.MemoryBossHealthMilestone = new Dictionary<string, int>();
 
     vars.ForgetMemoryBossActor = (Action<long>)(actor =>

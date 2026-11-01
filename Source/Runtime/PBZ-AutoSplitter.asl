@@ -149,12 +149,38 @@ init
     vars.IdleBossScanIntervalTicks = TimeSpan.TicksPerMillisecond * 100;
     vars.PlayerReconcileIntervalTicks = TimeSpan.TicksPerSecond * 2;
 
+    // FName 解码缓存。
+    // 键：32 位 UE FName id；值：解码后的名称字符串。
+    // 避免世界名和 UClass 名在同一世界代际内重复读取名称池。
     vars.MemoryBossFNameCache = new Dictionary<int, string>();
+
+    // UClass 名称缓存。
+    // 键：UClass 对象指针；值：该类对应的 UClass 名称。
+    // UClass 指针在同一世界代际内稳定，世界切换时必须整体清空。
     vars.MemoryBossClassCache = new Dictionary<long, string>();
+
+    // Actor 子组件缓存。
+    // 键：Actor 地址；值：long[6]。
+    // [0] UClass 指针，[1] 对象 FName id，[2] InternalIndex，
+    // [3] AttributeSetBase，[4] AbilitySystemComponent，[5] 组件刷新时间。
+    // 地址相同但身份三元组不匹配时禁止复用，防止对象销毁后的地址复用误读。
     vars.MemoryBossActorCache = new Dictionary<long, long[]>();
+
+    // 本地玩家完整解析记录。
+    // null 表示尚无有效玩家链路；非空时保存 long[9]：
+    // [0] PlayerController，[1] Pawn，[2] HatredManager，
+    // [3] AttributeSetBase，[4] AbilitySystemComponent，
+    // [5] Pawn UClass 指针，[6] Pawn 对象 FName id，
+    // [7] Pawn InternalIndex，[8] 最近一次完整解析时间。
     vars.MemoryBossPlayerRecord = null;
+
+    // 当前 Actor 缓存所属的 World/Dest 地址代际。
+    // 两者都非零且与当前世界一致时才允许命中缓存；任一变化都会失效全部对象缓存。
     vars.MemoryBossCacheWorld = 0L;
     vars.MemoryBossCacheDest = 0L;
+
+    // 下一次 Boss 扫描的 UTC ticks。
+    // 0 表示立即允许扫描；正常值为“上次扫描时间 + 当前阶段对应的扫描间隔”。
     vars.MemoryBossNextScan = 0L;
 
     // ReadFName 委托。
@@ -287,7 +313,14 @@ init
 
     // ReadTagFlags 委托。
     // 入参：AbilitySystemComponent 地址。
-    // 返回：bit 0 表示 Dead，bit 1 表示 ExcludeFromBossRecord；异常时返回 -1。
+    // 返回：
+    //   -1 读取失败；
+    //    0 读取成功，Dead 和 ExcludeFromBossRecord 均未激活；
+    //    1 仅 Dead 激活；
+    //    2 仅 ExcludeFromBossRecord 激活；
+    //    3 两个 Tag 均激活。
+    // 注意：-1 的位模式也包含 bit 0/1，调用方必须先判断 flags >= 0，
+    //       再使用 flags & 1 或 flags & 2。
     // 原理：先读取 ASC+0xF48 的 TArray 头，再批量读取所有 0x10 字节 Tag
     // 计数项。调用方必须先处理 Exclude，再处理 Dead。
     vars.ReadTagFlags = (Func<long, int>)(abilitySystem =>
@@ -470,19 +503,52 @@ init
         ((Dictionary<long, bool>)vars.MemoryBossLastDead).Clear();
     });
 
-    // 世界代际内的跟踪状态。这些集合只描述当前 World/Dest 组合中的观测，
-    // 会在会话重置时替换或清空。
+    // 待消费的 Boss 设置队列。键值不适用；元素为 Boss_* 设置 id。
+    // 仅保存已通过总开关和单项开关的事件，split 钩子按 FIFO 顺序消费。
     vars.MemoryBossPending = new Queue<string>();
+
+    // 本计时周期内已经处理过死亡边沿的 Boss 设置集合。
+    // 键：Boss_* 设置 id；用途：防止同一 Boss 在同一周期重复打点。
     vars.MemoryBossConsumed = new HashSet<string>();
+
+    // 当前 BeHatredList 中已成功采样且已启用的 Actor 跟踪表。
+    // 键：Actor 地址；值：对应 Boss_* 设置 id。
     vars.MemoryBossSeen = new Dictionary<long, string>();
+
+    // 未配置 Boss 候选的轻量跟踪表。
+    // 键：Actor 地址；值：UClass 名称。该表只用于日志，不参与打点。
     vars.MemoryBossUnknownSeen = new Dictionary<long, string>();
+
+    // 未配置 Boss 候选开始缺失的时间。
+    // 键：Actor 地址；值：首次移出 BeHatredList 的 UTC ticks。
     vars.MemoryBossUnknownMissingSince = new Dictionary<long, long>();
+
+    // 已离开 BeHatredList、但仍处于移除宽限期的已配置 Actor。
+    // 键：Actor 地址；值：Boss_* 设置 id。
     vars.MemoryBossChecks = new Dictionary<long, string>();
+
+    // 移除宽限期的截止时间。
+    // 键：Actor 地址；值：宽限结束时的 UTC ticks。默认宽限两秒。
     vars.MemoryBossCheckUntil = new Dictionary<long, long>();
+
+    // 已观察到有效存活状态的 Actor 地址集合。
+    // 只有在这个集合中的 Actor 才能通过后续 Dead Tag 或零生命值产生死亡边沿。
     vars.MemoryBossArmed = new HashSet<long>();
+
+    // 本次计时周期内已经记录过“出现”日志的 Boss 设置集合。
+    // 键：Boss_* 设置 id；用途：避免同一 Boss 每次扫描重复写 appeared 日志。
     vars.MemoryBossLoggedAppeared = new HashSet<string>();
+
+    // 最近一次读取到的 Boss 当前生命值。
+    // 键：Actor 地址；值：当前生命值。主要用于移除边沿诊断日志。
     vars.MemoryBossLastHealth = new Dictionary<long, float>();
+
+    // 最近一次读取到的 Boss Dead Tag 状态。
+    // 键：Actor 地址；值：Dead Tag 是否激活。主要用于移除边沿诊断日志。
     vars.MemoryBossLastDead = new Dictionary<long, bool>();
+
+    // Boss 血量里程碑日志状态。
+    // 键：Boss_* 设置 id；值：已经达到的最低百分比档位（100/75/50/25/10）。
     vars.MemoryBossHealthMilestone = new Dictionary<string, int>();
 
     // ForgetMemoryBossActor 操作。
