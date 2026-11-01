@@ -2,8 +2,7 @@ state("PBZ"){}
 
 startup
 {
-    // LiveSplit 的基线目录通常就是游戏运行目录。
-    // 设置文件和 asl-help 都从 Components 子目录加载。
+
     string componentDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Components");
     Assembly.Load(File.ReadAllBytes(Path.Combine(componentDir, "asl-help"))).CreateInstance("Basic");
     vars.Helper.GameName = "Phantom Blade Zero";
@@ -23,10 +22,7 @@ startup
 
     try
     {
-        // 设置文件按以下顺序回退：
-        // 1. 完整区域名，例如 PBZ.BossSettings.zh-CN.xml
-        // 2. 基础语言名，例如 PBZ.BossSettings.zh.xml
-        // 3. 默认 PBZ.BossSettings.xml
+
         string culture = System.Globalization.CultureInfo.CurrentCulture.Name;
         string settingsPath = Path.Combine(componentDir, "PBZ.BossSettings." + culture + ".xml");
         if (!File.Exists(settingsPath))
@@ -48,16 +44,7 @@ startup
 
 init
 {
-    // 整体数据流：
-    // 1. 绑定已验证的 PBZ 游戏进程。
-    // 2. 读取 World/Loading/Dest，构造加载暂停状态。
-    // 3. 按扫描间隔解析本地玩家和 BeHatredList。
-    // 4. 跟踪配置/未配置 Boss 的出现、死亡和移除边沿。
-    // 5. 将配置 Boss 的死亡事件写入队列，由 split 钩子消费。
-    // 任一步骤读取失败时都保持 fail closed，优先暂停而不是误打点。
 
-    // PBZ 会先启动一个同名引导进程，因此必须绑定完整游戏模块，
-    // 保证静态偏移始终相对游戏模块基址计算。
     string expectedBuild = "CL-301524_JKS-17219";
     vars.FindGame = (Func<Process>)(() =>
     {
@@ -92,8 +79,6 @@ init
         ((Action<string>)vars.Log)("build gate: no matching PBZ process");
     }
 
-    // 世界、加载状态和世界名均使用固定模块偏移。
-    // 任一读取失败时由 asl-help 将值置零或置空，后续流程保持 fail closed。
     vars.Helper["World"] = vars.Helper.Make<long>(0xdf741c8, 0xc88, 0x78);
     vars.Helper["WorldNameId"] = vars.Helper.Make<int>(0xdf741c8, 0xc88, 0x78, 0x18);
     vars.Helper["Dest"] = vars.Helper.Make<long>(0xdf741c8, 0xc88, 0x80, 0x118, 0x248);
@@ -122,8 +107,6 @@ init
     vars.MemoryBossCacheDest = 0L;
     vars.MemoryBossNextScan = 0L;
 
-    // 按 nameId 从 UE 的 FName 池解码名称，并缓存结果，
-    // 避免相同世界或 UClass 名称反复进行跨进程读取。
     vars.ReadFName = (Func<int, string>)(nameId =>
     {
         if (nameId <= 0) return null;
@@ -155,9 +138,6 @@ init
         return name;
     });
 
-    // UClass 名称在世界生命周期内保持不变。
-    // 只按 UClass 指针缓存，绝不按 Actor 指针缓存，
-    // 避免 Actor 销毁、地址复用后命中旧对象的类名。
     vars.ReadObjectClassName = (Func<long, string>)(classPtr =>
     {
         if (classPtr <= 0) return null;
@@ -172,8 +152,6 @@ init
         return className;
     });
 
-    // 一次 0x20 字节读取同时取得 UClass 指针、FName id 和对象内部索引。
-    // 这三项共同组成 Actor 身份键；地址被复用但对象不同时，身份键必须失配。
     vars.ReadObjectMeta = (Func<long, long[]>)(obj =>
     {
         if (obj <= 0) return null;
@@ -199,8 +177,6 @@ init
             && meta[2] == record[2];
     });
 
-    // APBZCharacter: +0x750 为 AbilitySystemComponent，
-    // +0x758 为 AttributeSetBase。两者相邻，因此一次读取即可完成组件解析。
     vars.ReadCharacterComponents = (Func<long, long[]>)(character =>
     {
         if (character <= 0) return null;
@@ -213,8 +189,6 @@ init
         };
     });
 
-    // 一次读取生命值和最大生命值；短读、NaN 或 Infinity 均视为无效，
-    // 调用方据此 fail closed。
     vars.ReadHealthPair = (Func<long, Tuple<float, float, bool>>)(attributeSet =>
     {
         if (attributeSet <= 0) return Tuple.Create(0.0f, 0.0f, false);
@@ -232,10 +206,6 @@ init
         return Tuple.Create(health, maxHealth, true);
     });
 
-    // UPBZAbilitySystemComponent.GameplayTagCountContainer 位于 +0xF48。
-    // FGameplayTagCountItem 为 0x10 字节：Tag 在 +0x00，Count 在 +0x08。
-    // 一次读取 TArray，在本地同时解析 Dead 和 ExcludeFromBossRecord；
-    // 短读或数据异常返回 -1，由调用方 fail closed。
     vars.ReadTagFlags = (Func<long, int>)(abilitySystem =>
     {
         if (abilitySystem <= 0) return -1;
@@ -274,8 +244,6 @@ init
         return flags;
     });
 
-    // 只把以 "_C" 结尾的 UClass 名映射到 Boss 设置，
-    // 并确认设置 XML 中确实存在对应的 Boss_* 项目。
     vars.GetBossSetting = (Func<string, string>)(className =>
     {
         if (string.IsNullOrEmpty(className)
@@ -286,8 +254,6 @@ init
         return settings.ContainsKey(setting) ? setting : null;
     });
 
-    // 总开关只控制是否入队和触发 split，不关闭 Boss 检测与日志。
-    // 设置缺失时按默认开启处理；读取异常时 fail closed。
     vars.IsAutoSplitEnabled = (Func<bool>)(() =>
     {
         try
@@ -298,8 +264,6 @@ init
         catch { return false; }
     });
 
-    // 按主 update 路径的原有顺序读取玩家状态：先生命值，后 GameplayTag。
-    // 失败返回 null，调用方可以重新解析玩家后只重试一次。
     vars.ReadMemoryBossPlayerState = (Func<long[], Tuple<float, float, bool, int>>)(record =>
     {
         if (record == null || record.Length < 5) return null;
@@ -310,8 +274,6 @@ init
         return Tuple.Create(health.Item1, health.Item2, true, tagFlags);
     });
 
-    // BeHatredList 为空时数组指针可能同时清零；
-    // 此时 count=0 是合法状态，不能按读取失败处理。
     vars.ReadMemoryBossActorList = (Func<long, long[]>)(hatredManager =>
     {
         byte[] header = vars.Helper.ReadSpan<byte>(0x10, (IntPtr)(hatredManager + 0xd8));
@@ -323,8 +285,6 @@ init
         return new long[] { actorArray, actorCount };
     });
 
-    // Actor 的 GameplayTag 和生命值总是一起读取。
-    // 任一读取无效时返回 null，让调用方刷新子组件指针后只重试一次。
     vars.ReadMemoryBossActorState = (Func<long[], Tuple<int, float, float>>)(record =>
     {
         if (record == null || record.Length < 5) return null;
@@ -339,9 +299,7 @@ init
     {
         try
         {
-            // 固定玩家链路：
-            // GEngine -> GameViewportClient -> GameInstance -> LocalPlayers[0]
-            // -> LocalPlayer -> PlayerController -> AcknowledgedPawn.
+
             long controller = vars.Helper.Read<long>(
                 0xdf741c8, 0xc88, 0x80, 0x38, 0x0, 0x30);
             if (controller <= 0) return false;
@@ -361,14 +319,7 @@ init
             if (health == null || !health.Item3) return false;
 
             long nowTicks = DateTime.UtcNow.Ticks;
-            // 玩家记录字段布局：
-            // [0] PlayerController
-            // [1] 本地 Pawn
-            // [2] HatredManager
-            // [3] AttributeSetBase
-            // [4] AbilitySystemComponent
-            // [5..7] Pawn 的 UClass/FName/内部索引身份键
-            // [8] 完整链路最近解析时间
+
             vars.MemoryBossPlayerRecord = new long[]
             {
                 controller, player, hatredManager, components[1], components[0],
@@ -392,7 +343,6 @@ init
         ((Dictionary<long, bool>)vars.MemoryBossLastDead).Clear();
     });
 
-    // 分帧状态会在 World/Dest 变化时清空；这些状态只对当前世界代际有效。
     vars.MemoryBossPending = new Queue<string>();
     vars.MemoryBossConsumed = new HashSet<string>();
     vars.MemoryBossSeen = new Dictionary<long, string>();
@@ -406,8 +356,6 @@ init
     vars.MemoryBossLastDead = new Dictionary<long, bool>();
     vars.MemoryBossHealthMilestone = new Dictionary<string, int>();
 
-    // Actor 清理拆成三部分：跟踪状态、组件缓存和最近读取样本。
-    // ExcludeFromBossRecord 路径会刻意保留组件缓存。
     vars.ForgetMemoryBossActor = (Action<long>)(actor =>
     {
         ((Dictionary<long, string>)vars.MemoryBossSeen).Remove(actor);
@@ -427,8 +375,6 @@ init
         ((Dictionary<long, bool>)vars.MemoryBossLastDead).Remove(actor);
     });
 
-    // 开始、重置、退出和关闭脚本时统一重置会话状态。
-    // 退出路径不重置下一扫描时间，保持原先的可观察语义。
     vars.ResetMemoryBossSession = (Action<bool>)(resetNextScan =>
     {
         vars.MemoryBossPending = new Queue<string>();
@@ -439,9 +385,6 @@ init
         ((Action)vars.ClearMemoryBossState)();
     });
 
-    // 同一 Boss 设置在单个计时周期内只处理一次死亡边沿，避免重复打点。
-    // MemoryBossConsumed 负责去重；每次事件都会写日志。
-    // 只有 AutoSplitEnabled 与 Boss 自身开关同时为 true 时才入队。
     vars.QueueMemoryBoss = (Action<string, string>)((setting, reason) =>
     {
         if (!string.IsNullOrEmpty(setting))
@@ -453,7 +396,7 @@ init
 
                 bool autoSplitEnabled = ((Func<bool>)vars.IsAutoSplitEnabled)();
                 bool bossEnabled = settings.ContainsKey(setting) && (bool)settings[setting];
-                // 死亡日志不受总开关影响，便于排查漏配或关闭打点的场景。
+
                 ((Action<string>)vars.Log)(
                     "boss died: setting=" + setting
                     + " reason=" + reason
@@ -470,8 +413,6 @@ init
         }
     });
 
-    // World 或 Dest 变化会使对象、UClass 和组件地址全部失效。
-    // 所有 Actor 缓存只属于当前世界代际，必须在切换时整体清理。
     vars.InvalidateMemoryBossCaches = (Action<string>)(reason =>
     {
         bool hadState = (long)vars.MemoryBossCacheWorld != 0
@@ -497,13 +438,7 @@ init
 
 update
 {
-    // fail closed：默认暂停，只有所有指针、加载标志和世界名都验证通过后才继续。
-    //
-    // update 前半段负责加载移除：
-    // World -> WorldNameId -> Dest/Loading -> DestClass/recordClass 校验。
-    //
-    // 后半段负责 Boss 自动打点：
-    // 玩家链路 -> HatredManager -> Actor 身份/组件 -> Tag/Health -> split 队列。
+
     vars.Paused = true;
 
     try
@@ -518,7 +453,6 @@ update
             || current.Dest == null || (long)current.Dest == 0
             || current.Loading == null) return;
 
-        // DestClass 与记录类必须一致，否则立即清空缓存并继续保持暂停。
         long destClass = vars.Helper.Read<long>(0xe021828);
         long recordClass = vars.Helper.Read<long>(0xdf741c8, 0xc88, 0x80, 0x118, 0x240);
         if (destClass == 0 || recordClass != destClass)
@@ -527,7 +461,6 @@ update
             return;
         }
 
-        // 世界名按 nameId 低频刷新；同一世界中无需重复解码 FName。
         int nameId = (int)current.WorldNameId;
         if (nameId != (int)vars.LastNameId || string.IsNullOrEmpty((string)vars.WorldName))
         {
@@ -537,7 +470,6 @@ update
             vars.LastNameId = nameId;
         }
 
-        // 前端、服务器检查和启动菜单世界不参与 Boss 扫描。
         string worldName = (string)vars.WorldName;
         bool frontend = worldName == "Untitled"
             || worldName == "ServerCheck"
@@ -549,7 +481,6 @@ update
             return;
         }
 
-        // World/Dest 任一变化都代表进入新的世界代际，必须整体失效缓存。
         long world = (long)current.World;
         long dest = (long)current.Dest;
         if ((long)vars.MemoryBossCacheWorld != world
@@ -565,9 +496,7 @@ update
         bool bossRunning = timer.CurrentPhase == TimerPhase.Running
             || timer.CurrentPhase == TimerPhase.Paused;
         long nowTicks = DateTime.UtcNow.Ticks;
-        // Running/Paused 每 50 ms 扫描一次；即使死亡和销毁发生在两次扫描之间，
-        // 下一次扫描仍会通过移除边沿和身份校验补发打点。
-        // Idle 每 100 ms 扫描一次，因为计时器未运行时不会真正触发 split。
+
         long scanInterval = bossRunning
             ? (long)vars.BossScanIntervalTicks
             : (long)vars.IdleBossScanIntervalTicks;
@@ -575,7 +504,6 @@ update
             return;
         vars.MemoryBossNextScan = nowTicks + scanInterval;
 
-        // 扫描门控通过后才解析委托，跳过扫描的 update 不承担这些转换开销。
         Action clearState = (Action)vars.ClearMemoryBossState;
         Func<long, long[]> readMeta = (Func<long, long[]>)vars.ReadObjectMeta;
         Func<long, long[]> readComponents =
@@ -587,8 +515,6 @@ update
         Func<long[], Tuple<int, float, float>> readActorState = (Func<long[], Tuple<int, float, float>>)vars.ReadMemoryBossActorState;
         Func<long, long[], bool> actorIdentityMatches = (Func<long, long[], bool>)vars.MemoryBossActorIdentityMatches;
 
-        // 玩家、HatredManager、AttributeSet 和 ASC 均为低频指针。
-        // 每两秒重新解析完整固定链路；缓存 Pawn 身份或读取失败时立即重新解析。
         long[] playerRecord = (long[])vars.MemoryBossPlayerRecord;
         bool resolvePlayer = playerRecord == null || playerRecord.Length < 9;
         if (!resolvePlayer)
@@ -608,7 +534,6 @@ update
             return;
         }
 
-        // 玩家状态读取失败时先重新解析完整玩家链路，再仅重试一次。
         playerRecord = (long[])vars.MemoryBossPlayerRecord;
         Tuple<float, float, bool, int> playerState = readPlayerState(playerRecord);
         if (playerState == null)
@@ -636,8 +561,6 @@ update
             return;
         }
 
-        // Hatred 列表头读取失败可能只是缓存指针失效；
-        // 重新解析玩家后重读一次，仍失败则清空本帧状态。
         long hatredManager = playerRecord[2];
         long[] actorList = readActorList(hatredManager);
         if (actorList == null)
@@ -663,6 +586,7 @@ update
         byte[] actorData = null;
         if (actorCount > 0)
         {
+
             actorData = vars.Helper.ReadSpan<byte>(
                 actorCount * 8,
                 (IntPtr)actorArray);
@@ -673,7 +597,6 @@ update
             }
         }
 
-        // Actor 级状态：当前列表、移除宽限、武装状态和最近样本。
         Dictionary<long, string> seen = (Dictionary<long, string>)vars.MemoryBossSeen;
         Dictionary<long, string> unknownSeen =
             (Dictionary<long, string>)vars.MemoryBossUnknownSeen;
@@ -692,17 +615,6 @@ update
         Action<long> forgetActorSamples = (Action<long>)vars.ForgetMemoryBossActorSamples;
         HashSet<long> currentActors = new HashSet<long>();
 
-        // actorCache 的字段布局：
-        // [0..2] Actor 的 UClass/FName/内部索引身份键
-        // [3] AttributeSetBase
-        // [4] AbilitySystemComponent
-        // [5] 子组件指针最近刷新时间
-        //
-        // seen 保存当前配置 Boss；Actor 离开列表后进入 checks 两秒宽限。
-        // armed 表示该 Actor 至少被观察到一次存活，用于确认真正的死亡边沿。
-
-        // 逐个 Actor 读取身份和组件。UClass 名称及子组件指针命中缓存时，
-        // 不会在热路径中重复跨进程读取。
         for (int i = 0; i < actorCount; i++)
         {
             long actor = BitConverter.ToInt64(actorData, i * 8);
@@ -715,8 +627,7 @@ update
             string setting = ((Func<string, string>)vars.GetBossSetting)(className);
             if (string.IsNullOrEmpty(setting))
             {
-                // 未配置 Boss 只做轻量日志跟踪，不读取组件、Tag 或生命值，
-                // 因此不会增加热路径的跨进程读取次数，也不会进入打点队列。
+
                 if (string.IsNullOrEmpty(className)
                     || !className.EndsWith("_C", StringComparison.Ordinal)) continue;
 
@@ -724,8 +635,7 @@ update
                 unknownMissingSince.Remove(actor);
                 if (!unknownSeen.ContainsKey(actor))
                 {
-                    // 地址可能被复用；首次识别为未配置 Actor 时，
-                    // 先清除同地址上遗留的配置 Boss 状态。
+
                     forgetActor(actor);
                     forgetActorCache(actor);
                     forgetActorSamples(actor);
@@ -738,11 +648,11 @@ update
                 unknownSeen[actor] = className;
                 continue;
             }
+
             if (!(bool)settings[setting]) continue;
 
             long[] record;
-            // 配置 Boss 只有在身份键匹配时才能复用组件缓存。
-            // 地址相同但对象身份不同，必须重新读取组件和状态。
+
             if (!actorCache.TryGetValue(actor, out record)
                 || record == null
                 || record.Length < 6
@@ -781,7 +691,6 @@ update
                 record[5] = nowTicks;
             }
 
-            // 组件指针可能因对象重建而失效；仅在读取失败且指针确实变化时重试。
             Tuple<int, float, float> actorState = readActorState(record);
             if (actorState == null)
             {
@@ -806,10 +715,10 @@ update
 
             currentActors.Add(actor);
             int tagFlags = actorState.Item1;
-            // ExcludeFromBossRecord 优先于死亡判断，并清除该 Actor 的所有打点状态。
+
             if ((tagFlags & 2) != 0)
             {
-                // Exclude 只清除打点状态，保留组件缓存，避免重新纳入时再次解析。
+
                 forgetActor(actor);
                 forgetActorSamples(actor);
                 continue;
@@ -864,8 +773,6 @@ update
                 }
             }
 
-            // 只有先观察到过存活状态才会触发死亡边沿，避免初始即死亡的对象误打点。
-            // Dead Tag 和零生命值都作为死亡证据。
             if (bossRunning && armed.Contains(actor) && (dead || health <= 0.001f))
             {
                 string reason = dead ? "dead-tag" : "zero-health";
@@ -882,8 +789,6 @@ update
             checkUntil.Remove(actor);
         }
 
-        // 未配置 Boss 不进入打点状态机，仅记录出现和稳定移除/死亡边沿。
-        // 连续缺失两秒后才记为死亡/移除，避免单帧读取失败产生虚假日志。
         List<long> unknownActors = new List<long>((IEnumerable<long>)unknownSeen.Keys);
         foreach (long actor in unknownActors)
         {
@@ -912,11 +817,6 @@ update
             unknownMissingSince.Remove(actor);
         }
 
-        // Actor 从 BeHatredList 消失后不立即打点：
-        // 先校验身份，确认对象未被销毁或地址复用后，再进入两秒移除宽限。
-        //
-        // 如果身份立即失效，说明对象已销毁或地址被复用；
-        // 计时器真实运行时，这本身就是可打点的移除边沿。
         List<long> seenActors = new List<long>((IEnumerable<long>)seen.Keys);
         foreach (long actor in seenActors)
         {
@@ -950,9 +850,6 @@ update
             checkUntil[actor] = nowTicks + TimeSpan.TicksPerSecond * 2;
         }
 
-        // 宽限期内继续观察死亡 Tag 和生命值，
-        // 用于捕捉“死亡与销毁发生在同一扫描间隔”的情况。
-        // 宽限到期仍未确认死亡时，只写日志并清理状态，不触发打点。
         List<long> checkActors = new List<long>((IEnumerable<long>)checks.Keys);
         foreach (long actor in checkActors)
         {
@@ -1017,8 +914,6 @@ update
             }
         }
 
-        // 既不在当前 BeHatredList、也不在两秒移除宽限窗口内的 Actor，
-        // 不再保留其子组件指针和最近读取样本。
         List<long> cachedActors = new List<long>((IEnumerable<long>)actorCache.Keys);
         foreach (long actor in cachedActors)
         {
@@ -1034,7 +929,6 @@ update
 
 start
 {
-    // 只允许在指定起始世界完成加载的边沿启动计时。
     if ((bool)vars.Paused) return false;
     if ((string)vars.WorldName != "PBZ_WP_ZhuLinGuWu") return false;
     if (current.Loading == null || old.Loading == null) return false;
@@ -1049,8 +943,6 @@ isLoading
 
 split
 {
-    // 只在计时器 Running 阶段消费待处理 Boss，避免暂停或待机时误打点。
-    // AutoSplitEnabled 是最终门控：关闭时清空队列并拒绝本次 split。
     if ((bool)vars.Paused) return false;
     if (!((Func<bool>)vars.IsAutoSplitEnabled)())
     {
@@ -1074,19 +966,16 @@ split
 
 onStart
 {
-    // 新计时周期清空 Boss 队列、去重集合和扫描调度。
     ((Action<bool>)vars.ResetMemoryBossSession)(true);
 }
 
 onReset
 {
-    // 重置计时器时回到与 onStart 相同的初始状态。
     ((Action<bool>)vars.ResetMemoryBossSession)(true);
 }
 
 exit
 {
-    // 游戏退出时立即暂停游戏时间并清空会话状态。
     vars.Paused = true;
     timer.IsGameTimePaused = true;
     ((Action<bool>)vars.ResetMemoryBossSession)(false);
@@ -1096,7 +985,7 @@ shutdown
 {
     try
     {
-        // 脚本关闭时释放全部会话引用；保留异常吞掉逻辑，避免 LiveSplit 退出时报错。
+
         ((Action<bool>)vars.ResetMemoryBossSession)(false);
     }
     catch {}

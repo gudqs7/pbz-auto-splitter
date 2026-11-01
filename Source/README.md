@@ -3,6 +3,10 @@
 `PBZ.SaveReader` is the managed save decoder loaded by
 `Components/PBZ-AutoSplitter_BySave.asl`.
 
+Editable splitter source lives in `Runtime/`. Generate comment-free files under
+`../Components` with `build_pbz_runtime.ps1`; generated runtime files must not be
+edited directly.
+
 The production path reads only the `__Advanced__` record:
 
 ```text
@@ -14,6 +18,15 @@ PBZS index -> AES-256-GCM decrypt -> OodleCleanRoom Mermaid
 separate runtime assembly.
 
 ## Build
+
+Generate the PBZ ASL/XML runtime files:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass `
+  -File .\Source\build_pbz_runtime.ps1
+```
+
+Build the save reader:
 
 From the repository root:
 

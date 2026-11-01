@@ -7,8 +7,8 @@ using System.Text;
 namespace PBZ
 {
     /// <summary>
-    /// Reads the boss counters used by the Phantom Blade Zero save splitter.
-    /// Only __Advanced__ is decoded from a PBZS container.
+    /// 读取 Phantom Blade Zero 存档打点使用的 Boss 计数。
+    /// 从 PBZS 容器中只解码 __Advanced__ 记录。
     /// </summary>
     public static partial class SaveReader
     {
@@ -23,7 +23,7 @@ namespace PBZ
         }
 
         /// <summary>
-        /// Returns OK, the file signature, and sorted boss counters:
+        /// 返回 OK、文件签名和排序后的 Boss 计数：
         /// OK\t&lt;writeTicks&gt;\t&lt;length&gt;\n&lt;bossKey&gt;\t&lt;killCount&gt;...
         /// </summary>
         public static string ReadSnapshotText(string savePath)
@@ -111,8 +111,8 @@ namespace PBZ
         }
 
         /// <summary>
-        /// Finds the newest PBZSaveGame.sav below ProjectPBZ\Saved\SaveGames.
-        /// Falls back to any *.sav in that tree if the aggregate file is absent.
+        /// 在 ProjectPBZ\Saved\SaveGames 下寻找最新的 PBZSaveGame.sav。
+        /// 聚合文件不存在时，回退到该目录树中的任意 *.sav。
         /// </summary>
         public static string FindSaveFile(string gameExeOrDirectory)
         {
@@ -137,8 +137,8 @@ namespace PBZ
         }
 
         /// <summary>
-        /// Finds an Oodle decoder in the usual game/LiveSplit locations. The
-        /// result is cached until the lookup changes or the DLL disappears.
+        /// 在常见的游戏和 LiveSplit 路径中寻找 Oodle 解码器。
+        /// 查找条件变化或 DLL 消失前会缓存结果。
         /// </summary>
         public static string FindOodleDll(string gameExeSaveOrDirectory)
         {

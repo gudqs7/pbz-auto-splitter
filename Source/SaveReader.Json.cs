@@ -7,8 +7,8 @@ using System.Text;
 namespace PBZ
 {
     /// <summary>
-    /// Streams the two BossRecord maps needed by the splitter. Unknown JSON
-    /// values are skipped instead of materialized as dictionaries.
+    /// 流式读取自动打点脚本需要的两个 BossRecord 映射。
+    /// 未知 JSON 值直接跳过，不会物化为字典。
     /// </summary>
     internal sealed class JsonBossParser
     {

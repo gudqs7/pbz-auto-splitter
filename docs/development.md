@@ -33,6 +33,28 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
   -OutPath .\dist\PBZSaveReader.dll
 ```
 
+## Build the ASL runtime
+
+Edit ASL and XML only under `Source/Runtime`. Generate comment-free runtime files
+under `Components`:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass `
+  -File .\Source\build_pbz_runtime.ps1
+```
+
+To generate and synchronize the PBZ runtime files into the local LiveSplit
+installation:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass `
+  -File .\Source\build_pbz_runtime.ps1 -SyncLiveSplit
+```
+
+The generator removes C#/ASL and XML comments, verifies the generated files, and
+compares SHA-256 hashes after synchronization. The packaging script applies the
+same sanitizer to every distributable ASL, C#, PowerShell, and XML file.
+
 ## Build and test the decoder independently
 
 ```powershell
@@ -68,6 +90,7 @@ The archive contains `Components`, `Source`, and top-level documentation.
 ## Source hygiene
 
 - Use relative paths in scripts and documentation.
+- Keep comments in `Source/Runtime`, never in generated `Components` files.
 - Do not commit save files, logs, crash dumps, Steam account directories, game
   executables, or Oodle DLLs.
 - Keep compiled release files limited to `Components`.

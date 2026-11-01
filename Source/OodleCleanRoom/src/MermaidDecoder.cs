@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace OodleCleanRoom
 {
     /// <summary>
-    /// Scalar decoder for the Oodle LZ subset used by Phantom Blade Zero saves.
+    /// Phantom Blade Zero 存档所用 Oodle LZ 子集的标量解码器。
     /// </summary>
     public static class MermaidDecoder
     {

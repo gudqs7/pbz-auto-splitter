@@ -6,9 +6,12 @@ Blade Zero LiveSplit auto splitter. Read `README.md` and the relevant file under
 
 ## Runtime contract
 
-- `Components/PBZ-AutoSplitter.asl` is the default LiveSplit entry point and is
-  a memory-only Boss auto splitter.
-- `Components/PBZ-AutoSplitter_BySave.asl` is the retained save-file variant.
+- `Components/PBZ-AutoSplitter.asl` is the generated default LiveSplit entry
+  point and is a memory-only Boss auto splitter.
+- `Components/PBZ-AutoSplitter_BySave.asl` is the generated save-file variant.
+- Editable ASL and XML source lives under `Source/Runtime`. Repository
+  `Components`, release archives, and the local LiveSplit `Components` directory
+  are generated without comments.
 - Both ASLs load `Components/asl-help` and a language-matched boss settings XML.
   They check the full culture name, then the base language, before falling back
   to `Components/PBZ.BossSettings.xml`.
@@ -28,10 +31,12 @@ Blade Zero LiveSplit auto splitter. Read `README.md` and the relevant file under
 - `Source/SaveReader.Json.cs`: minimal boss-counter JSON parser.
 - `Source/GameOodleDecompressor.cs`: game-process Oodle fallback.
 - `Source/OodleCleanRoom/src`: clean-room Mermaid decoder.
-- `Components/PBZ-AutoSplitter.asl`: memory offsets, load detection, live Boss
-  tags/health/actor tracking, and split queue.
-- `Components/PBZ-AutoSplitter_BySave.asl`: prior save-backed Boss split
-  implementation.
+- `Source/Runtime/PBZ-AutoSplitter.asl`: commented memory splitter source.
+- `Source/Runtime/PBZ-AutoSplitter_BySave.asl`: commented save-backed source.
+- `Source/Runtime/PBZ.BossSettings*.xml`: commented settings source.
+- `Source/build_pbz_runtime.ps1`: generates comment-free runtime files.
+- `Components/*.asl` and `Components/PBZ.BossSettings*.xml`: generated runtime
+  files. Do not edit them directly.
 
 ## Build
 
@@ -59,20 +64,24 @@ executable and an Oodle DLL path to `PBZSaveReader.Benchmark.exe`.
 
 ## Runtime synchronization
 
-- `Components` is the packaged runtime source. Keep it in two-way sync with
+- `Source/Runtime` is the editable source for ASL and settings XML.
+  Repository `Components` and the local LiveSplit `Components` directory are
+  generated outputs and must remain comment-free.
+- Run `Source/build_pbz_runtime.ps1 -SyncLiveSplit` to regenerate repository
+  runtime files and synchronize the PBZ files into
   `D:\soft\e-game\LiveSplit_1.8.29\Components`.
-- Before editing any ASL, settings XML, `asl-help`, `PBZSaveReader.dll`, or
-  other runtime file, compare the repository copy with the runtime copy using
-  both `LastWriteTime` and SHA-256. If the runtime copy differs or is newer,
-  inspect and merge that change into the repository first; never overwrite a
-  newer runtime change blindly.
-- After validation, copy every changed runtime file to
-  `D:\soft\e-game\LiveSplit_1.8.29\Components` and verify that both copies have
-  the same SHA-256.
+- Before synchronization, compare existing local runtime copies with the
+  repository copies. A newer differing local file must be inspected and merged
+  back into `Source/Runtime` before regeneration; never overwrite it blindly.
+- `asl-help` and `PBZSaveReader.dll` are binary runtime dependencies. Compare
+  them by SHA-256 before synchronization and verify matching hashes afterward.
 
 ## Change rules
 
 - Keep all changes scoped to the PBZ auto splitter.
+- Edit ASL/XML under `Source/Runtime`, then regenerate runtime files with
+  `Source/build_pbz_runtime.ps1`. Never add comments directly under
+  `Components`.
 - Do not add game binaries, `oo2core_*.dll`, save files, logs, crash dumps, or
   machine-specific absolute paths.
 - Do not change the default boss toggles without checking the XML against a
@@ -88,9 +97,10 @@ executable and an Oodle DLL path to `PBZSaveReader.Benchmark.exe`.
 ## Release checklist
 
 1. Build `Components/PBZSaveReader.dll`.
-2. Run the clean-room vector tests.
-3. Verify both ASLs still parse in LiveSplit.
-4. Smoke-test memory-only Boss detection and one enabled split.
-5. Repeat the same split with the BySave variant when touching save parsing.
-6. Update `Version` in `SaveReader.Api.cs`, `README.md`, and `CHANGELOG.md`.
-7. Package only after the repository is clean.
+2. Run `Source/build_pbz_runtime.ps1`.
+3. Run the clean-room vector tests.
+4. Verify both generated ASLs contain no comments and still parse in LiveSplit.
+5. Smoke-test memory-only Boss detection and one enabled split.
+6. Repeat the same split with the BySave variant when touching save parsing.
+7. Update `Version` in `SaveReader.Api.cs`, `README.md`, and `CHANGELOG.md`.
+8. Package only after the repository is clean.

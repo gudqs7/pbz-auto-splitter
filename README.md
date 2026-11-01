@@ -92,11 +92,17 @@ Production use requires no Oodle DLL.
 
 ```text
 Components/                 Runtime files copied into LiveSplit
-Source/                     Rebuildable save-reader source
+Source/Runtime/             Commented ASL and settings source
+Source/                     Runtime generator and rebuildable save-reader source
 Source/OodleCleanRoom/      Mermaid decoder, tests, and real-save vectors
 docs/                       Architecture, development, testing, and support
 AGENT.md                    Repository instructions for coding agents
 ```
+
+The files shipped under `Components`, including release archives and the local
+LiveSplit `Components` copy, are generated without comments. Edit
+`Source/Runtime` and run `Source/build_pbz_runtime.ps1` instead of changing the
+generated ASL or XML directly.
 
 ## Documentation
 

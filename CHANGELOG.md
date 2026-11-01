@@ -1,7 +1,10 @@
 # Changelog
 
-## Unreleased
+## 2.2.1 - 2026-11-01
 
+- Moved commented ASL/XML source under `Source/Runtime` and added a runtime
+  generator that removes every comment from generated files, release archives,
+  and synchronized local LiveSplit components.
 - Renamed the save-file implementation to `PBZ-AutoSplitter_BySave.asl`.
 - Added `PBZ-AutoSplitter.asl`, a memory-only Boss auto splitter using active
   combat actors, gameplay tags, health, and actor destruction.

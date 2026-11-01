@@ -47,6 +47,19 @@ legacy reader or running game is present.
 
 ## LiveSplit acceptance test
 
+First regenerate and validate the comment-free runtime files:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass `
+  -File .\Source\build_pbz_runtime.ps1
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass `
+  -File .\Source\test_pbz_runtime.ps1
+```
+
+The test verifies that generated ASL/XML files contain no comments and compiles
+both ASLs with the installed LiveSplit ASL parser.
+
 After automated tests pass:
 
 1. Copy the required runtime files into a test LiveSplit `Components` directory.

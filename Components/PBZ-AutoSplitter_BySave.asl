@@ -29,8 +29,7 @@ startup
 
 init
 {
-    // PBZ starts a tiny bootstrap process with the same name. Bind to the
-    // full game module so the static offsets are always module-relative.
+
     vars.FindGame = (Func<Process>)(() =>
     {
         Process best = null;
@@ -87,7 +86,6 @@ init
         return string.IsNullOrEmpty(name) ? null : name;
     });
 
-    // ---- Boss kill auto-split ----
     vars.BossApiReady = false;
     vars.BossBaseline = null;
     vars.BossPending = new Queue<string>();
@@ -201,10 +199,9 @@ init
 
 update
 {
-    // Fail closed: pause until every pointer, loading flag and world name validates.
+
     vars.Paused = true;
 
-    // ---- Boss kill tracking: independent of the pointer chain / loading state ----
     if ((bool)vars.BossApiReady)
     {
         long bossNow = DateTime.UtcNow.Ticks;
@@ -228,6 +225,7 @@ update
         }
 
         string bossSavePath = (string)vars.BossSavePath;
+
         if (!string.IsNullOrEmpty(bossSavePath))
         {
             long bossFileTicks = 0L;

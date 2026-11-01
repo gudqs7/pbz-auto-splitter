@@ -7,9 +7,8 @@ using System.Runtime.InteropServices;
 namespace PBZ
 {
     /// <summary>
-    /// Calls the Oodle decoder already initialized inside PBZ.exe. The package
-    /// contains no Oodle binary and the remote allocation is released after each
-    /// save read.
+    /// 调用 PBZ.exe 内已初始化的 Oodle 解码器。发布包不包含 Oodle 二进制，
+    /// 每次读取存档后都会释放远程分配的内存。
     /// </summary>
     internal static class GameOodleDecompressor
     {
@@ -42,11 +41,11 @@ namespace PBZ
             + "4D 8B E8 4C 89 45 38 4C 8B F2 48 89 55 50 "
             + "48 89 4D 08");
 
-        // Windows x64:
-        //   RCX = parameter block
-        //   shadow space + arguments 4..13
-        //   call OodleLZ_Decompress(comp, compSize, raw, rawSize, 0, 0, 0,
-        //                           0, 0, 0, 0, 0, 0, 3)
+        // Windows x64 调用约定：
+        //   RCX = 参数块
+        //   影子空间以及第 4 到第 13 个参数
+        //   调用 OodleLZ_Decompress(comp, compSize, raw, rawSize, 0, 0, 0,
+        //                          0, 0, 0, 0, 0, 0, 3)
         private static readonly byte[] RemoteStub =
         {
             0x48, 0x81, 0xEC, 0x88, 0x00, 0x00, 0x00,

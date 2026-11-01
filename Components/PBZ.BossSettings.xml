@@ -1,8 +1,7 @@
 <Settings>
-    <!-- Groups follow DT_CodexEnemyDataTable.OwnMapID and DT_MapData. BossName_xxx keys are used only for ordering. -->
-    <!-- 总开关只控制是否触发自动打点；Boss 检测和日志仍会继续运行。 -->
+
     <Setting Id="AutoSplitEnabled" Label="自动打点总开关" State="true" />
-    <!-- 默认开启全部 Boss；可按单场跑法在 LiveSplit 中关闭不需要的分支。 -->
+
     <Setting Id="BossSplits" Label="Boss 击杀自动打点" State="true">
         <Setting Id="MapPrologue" Label="序章" State="true">
             <Setting Id="Boss_BP_Monster_ZuoShang" Label="“组织”冥主：左殇" State="true" />
