@@ -82,7 +82,7 @@ Create a versioned zip after tests pass:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File .\Source\package_release.ps1 -Version 2.2.0
+  -File .\Source\package_release.ps1 -Version 2.2.2
 ```
 
 The archive contains `Components`, `Source`, and top-level documentation.

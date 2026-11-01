@@ -6,25 +6,33 @@ startup
     Assembly.Load(File.ReadAllBytes(Path.Combine(componentDir, "asl-help"))).CreateInstance("Basic");
     vars.Helper.GameName = "Phantom Blade Zero";
 
-    try
+    vars.SettingsLoaded = false;
+    vars.LoadSettings = (Action)(() =>
     {
-        string culture = System.Globalization.CultureInfo.CurrentCulture.Name;
-        string settingsPath = Path.Combine(componentDir, "PBZ.BossSettings." + culture + ".xml");
-        if (!File.Exists(settingsPath))
+        if (!(bool)vars.SettingsLoaded)
         {
-            string language = culture.Split('-')[0];
-            settingsPath = Path.Combine(componentDir, "PBZ.BossSettings." + language + ".xml");
-        }
-        if (!File.Exists(settingsPath))
-            settingsPath = Path.Combine(componentDir, "PBZ.BossSettings.xml");
+            try
+            {
+                string culture = System.Globalization.CultureInfo.CurrentCulture.Name;
+                string settingsPath = Path.Combine(componentDir, "PBZ.BossSettings." + culture + ".xml");
+                if (!File.Exists(settingsPath))
+                {
+                    string language = culture.Split('-')[0];
+                    settingsPath = Path.Combine(componentDir, "PBZ.BossSettings." + language + ".xml");
+                }
+                if (!File.Exists(settingsPath))
+                    settingsPath = Path.Combine(componentDir, "PBZ.BossSettings.xml");
 
-        print("[PBZ] settings culture=" + culture + " file=" + settingsPath);
-        vars.Helper.Settings.CreateFromXml(settingsPath);
-    }
-    catch (Exception ex)
-    {
-        print("[PBZ] boss settings load failed: " + ex.Message);
-    }
+                vars.Helper.Settings.CreateFromXml(settingsPath);
+                vars.SettingsLoaded = true;
+                print("[PBZ] settings culture=" + culture + " file=" + settingsPath);
+            }
+            catch (Exception ex)
+            {
+                print("[PBZ] boss settings load failed: " + ex.Message);
+            }
+        }
+    });
 }
 
 init
@@ -46,8 +54,25 @@ init
         return bestSize == 0x1ec54000 ? best : null;
     });
 
-    Process target = ((Func<Process>)vars.FindGame)();
-    if (target != null) vars.Helper.Game = target;
+    Process target = null;
+    int findAttempt = 0;
+    for (; findAttempt < 20; findAttempt++)
+    {
+        target = ((Func<Process>)vars.FindGame)();
+        if (target != null) break;
+        if (findAttempt < 19) System.Threading.Thread.Sleep(50);
+    }
+
+    if (target != null)
+    {
+        vars.Helper.Game = target;
+        ((Action)vars.LoadSettings)();
+    }
+    else
+    {
+        print("[PBZ] build gate: no matching PBZ process");
+        return;
+    }
 
     vars.Helper["World"] = vars.Helper.Make<long>(0xdf741c8, 0xc88, 0x78);
     vars.Helper["WorldNameId"] = vars.Helper.Make<int>(0xdf741c8, 0xc88, 0x78, 0x18);

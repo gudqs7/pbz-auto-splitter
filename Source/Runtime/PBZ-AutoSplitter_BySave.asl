@@ -3,36 +3,43 @@
 state("PBZ"){}
 
 // LiveSplit 生命周期钩子：startup
-// 作用：加载 asl-help 和匹配语言的 Boss 设置 XML。
+// 作用：加载 asl-help，并准备匹配语言的 Boss 设置 XML 延迟加载委托。
 // 入参：无。LiveSplit 提供设置构建器。
 // 返回：null。
-// 原理：按完整区域名、基础语言、默认 XML 的顺序回退；
-// 存档读取 DLL 稍后在 init 中加载。
+// 原理：XML 只在 init 通过构建门禁后读取；存档读取 DLL 也稍后在 init 中加载。
 startup
 {
     string componentDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Components");
     Assembly.Load(File.ReadAllBytes(Path.Combine(componentDir, "asl-help"))).CreateInstance("Basic");
     vars.Helper.GameName = "Phantom Blade Zero";
 
-    try
+    vars.SettingsLoaded = false;
+    vars.LoadSettings = (Action)(() =>
     {
-        string culture = System.Globalization.CultureInfo.CurrentCulture.Name;
-        string settingsPath = Path.Combine(componentDir, "PBZ.BossSettings." + culture + ".xml");
-        if (!File.Exists(settingsPath))
+        if (!(bool)vars.SettingsLoaded)
         {
-            string language = culture.Split('-')[0];
-            settingsPath = Path.Combine(componentDir, "PBZ.BossSettings." + language + ".xml");
-        }
-        if (!File.Exists(settingsPath))
-            settingsPath = Path.Combine(componentDir, "PBZ.BossSettings.xml");
+            try
+            {
+                string culture = System.Globalization.CultureInfo.CurrentCulture.Name;
+                string settingsPath = Path.Combine(componentDir, "PBZ.BossSettings." + culture + ".xml");
+                if (!File.Exists(settingsPath))
+                {
+                    string language = culture.Split('-')[0];
+                    settingsPath = Path.Combine(componentDir, "PBZ.BossSettings." + language + ".xml");
+                }
+                if (!File.Exists(settingsPath))
+                    settingsPath = Path.Combine(componentDir, "PBZ.BossSettings.xml");
 
-        print("[PBZ] settings culture=" + culture + " file=" + settingsPath);
-        vars.Helper.Settings.CreateFromXml(settingsPath);
-    }
-    catch (Exception ex)
-    {
-        print("[PBZ] boss settings load failed: " + ex.Message);
-    }
+                vars.Helper.Settings.CreateFromXml(settingsPath);
+                vars.SettingsLoaded = true;
+                print("[PBZ] settings culture=" + culture + " file=" + settingsPath);
+            }
+            catch (Exception ex)
+            {
+                print("[PBZ] boss settings load failed: " + ex.Message);
+            }
+        }
+    });
 }
 
 // LiveSplit 生命周期钩子：init
@@ -65,8 +72,25 @@ init
         return bestSize == 0x1ec54000 ? best : null;
     });
 
-    Process target = ((Func<Process>)vars.FindGame)();
-    if (target != null) vars.Helper.Game = target;
+    Process target = null;
+    int findAttempt = 0;
+    for (; findAttempt < 20; findAttempt++)
+    {
+        target = ((Func<Process>)vars.FindGame)();
+        if (target != null) break;
+        if (findAttempt < 19) System.Threading.Thread.Sleep(50);
+    }
+
+    if (target != null)
+    {
+        vars.Helper.Game = target;
+        ((Action)vars.LoadSettings)();
+    }
+    else
+    {
+        print("[PBZ] build gate: no matching PBZ process");
+        return;
+    }
 
     vars.Helper["World"] = vars.Helper.Make<long>(0xdf741c8, 0xc88, 0x78);
     vars.Helper["WorldNameId"] = vars.Helper.Make<int>(0xdf741c8, 0xc88, 0x78, 0x18);

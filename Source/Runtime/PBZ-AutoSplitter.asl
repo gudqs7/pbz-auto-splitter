@@ -10,11 +10,11 @@
 state("PBZ"){}
 
 // LiveSplit 生命周期钩子：startup
-// 作用：在游戏进程出现前初始化 helper、设置和持久委托。
+// 作用：在游戏进程出现前初始化 helper、日志和延迟设置加载委托。
 // 入参：没有显式参数，LiveSplit 通过 ASL 注入设置构建器。
 // 返回：null。
-// 原理：每次脚本加载或重载只运行一次；先加载 asl-help，再把匹配语言的
-// XML 反序列化为设置树。
+// 原理：每次脚本加载或重载只运行一次；XML 只在 init 通过构建门禁后读取，
+// 避免游戏尚未找到时加载设置。
 startup
 {
     // 从 LiveSplit 主程序位置解析 Components 目录。必须在运行时计算，
@@ -41,31 +41,39 @@ startup
         catch {}
     });
 
-    try
+    vars.SettingsLoaded = false;
+    vars.LoadSettings = (Action)(() =>
     {
-        // 设置文件解析顺序：
-        // 1. 完整区域名，例如 PBZ.BossSettings.zh-CN.xml。
-        // 2. 基础语言名，例如 PBZ.BossSettings.en.xml。
-        // 3. 默认的 PBZ.BossSettings.xml。
-        // 这里使用 CurrentCulture 而不是 CurrentUICulture，因此默认跟随
-        // Windows 区域格式，除非存在完全匹配的文件。
-        string culture = System.Globalization.CultureInfo.CurrentCulture.Name;
-        string settingsPath = Path.Combine(componentDir, "PBZ.BossSettings." + culture + ".xml");
-        if (!File.Exists(settingsPath))
+        if (!(bool)vars.SettingsLoaded)
         {
-            string language = culture.Split('-')[0];
-            settingsPath = Path.Combine(componentDir, "PBZ.BossSettings." + language + ".xml");
-        }
-        if (!File.Exists(settingsPath))
-            settingsPath = Path.Combine(componentDir, "PBZ.BossSettings.xml");
+            try
+            {
+                // 设置文件解析顺序：
+                // 1. 完整区域名，例如 PBZ.BossSettings.zh-CN.xml。
+                // 2. 基础语言名，例如 PBZ.BossSettings.en.xml。
+                // 3. 默认的 PBZ.BossSettings.xml。
+                // 这里使用 CurrentCulture 而不是 CurrentUICulture，因此默认跟随
+                // Windows 区域格式，除非存在完全匹配的文件。
+                string culture = System.Globalization.CultureInfo.CurrentCulture.Name;
+                string settingsPath = Path.Combine(componentDir, "PBZ.BossSettings." + culture + ".xml");
+                if (!File.Exists(settingsPath))
+                {
+                    string language = culture.Split('-')[0];
+                    settingsPath = Path.Combine(componentDir, "PBZ.BossSettings." + language + ".xml");
+                }
+                if (!File.Exists(settingsPath))
+                    settingsPath = Path.Combine(componentDir, "PBZ.BossSettings.xml");
 
-        vars.Helper.Settings.CreateFromXml(settingsPath);
-        ((Action<string>)vars.Log)("settings loaded: culture=" + culture + " file=" + settingsPath);
-    }
-    catch (Exception ex)
-    {
-        ((Action<string>)vars.Log)("settings load failed: " + ex.Message);
-    }
+                vars.Helper.Settings.CreateFromXml(settingsPath);
+                vars.SettingsLoaded = true;
+                ((Action<string>)vars.Log)("settings loaded: culture=" + culture + " file=" + settingsPath);
+            }
+            catch (Exception ex)
+            {
+                ((Action<string>)vars.Log)("settings load failed: " + ex.Message);
+            }
+        }
+    });
 }
 
 // LiveSplit 生命周期钩子：init
@@ -115,10 +123,26 @@ init
         return best;
     });
 
-    Process target = ((Func<Process>)vars.FindGame)();
+    // 引导进程会比完整游戏早出现，主进程可能只晚几十毫秒。
+    // 初始化阶段做有界重试，最多等待约一秒，避免首次枚举恰好落在空档。
+    Process target = null;
+    int findAttempt = 0;
+    for (; findAttempt < 20; findAttempt++)
+    {
+        target = ((Func<Process>)vars.FindGame)();
+        if (target != null) break;
+        if (findAttempt < 19) System.Threading.Thread.Sleep(50);
+    }
+
     if (target != null)
     {
         vars.Helper.Game = target;
+        ((Action)vars.LoadSettings)();
+        if (findAttempt > 0)
+        {
+            ((Action<string>)vars.Log)(
+                "build gate: matched PBZ process after retry=" + findAttempt);
+        }
     }
     else
     {
@@ -148,6 +172,8 @@ init
     vars.BossScanIntervalTicks = TimeSpan.TicksPerMillisecond * 50;
     vars.IdleBossScanIntervalTicks = TimeSpan.TicksPerMillisecond * 100;
     vars.PlayerReconcileIntervalTicks = TimeSpan.TicksPerSecond * 2;
+    vars.BossRemovalGraceTicks = TimeSpan.TicksPerSecond * 60;
+    vars.BossLowHealthRemovalRatio = 0.02f;
 
     // FName 解码缓存。
     // 键：32 位 UE FName id；值：解码后的名称字符串。
@@ -501,6 +527,7 @@ init
         ((HashSet<long>)vars.MemoryBossArmed).Clear();
         ((Dictionary<long, float>)vars.MemoryBossLastHealth).Clear();
         ((Dictionary<long, bool>)vars.MemoryBossLastDead).Clear();
+        ((Dictionary<long, float>)vars.MemoryBossLastHealthRatio).Clear();
     });
 
     // 待消费的 Boss 设置队列。键值不适用；元素为 Boss_* 设置 id。
@@ -528,7 +555,7 @@ init
     vars.MemoryBossChecks = new Dictionary<long, string>();
 
     // 移除宽限期的截止时间。
-    // 键：Actor 地址；值：宽限结束时的 UTC ticks。默认宽限两秒。
+    // 键：Actor 地址；值：宽限结束时的 UTC ticks。默认宽限六十秒。
     vars.MemoryBossCheckUntil = new Dictionary<long, long>();
 
     // 已观察到有效存活状态的 Actor 地址集合。
@@ -546,6 +573,10 @@ init
     // 最近一次读取到的 Boss Dead Tag 状态。
     // 键：Actor 地址；值：Dead Tag 是否激活。主要用于移除边沿诊断日志。
     vars.MemoryBossLastDead = new Dictionary<long, bool>();
+
+    // 最近一次有效读取到的 Boss 生命值比例。
+    // 键：Actor 地址；值：当前生命值 / 最大生命值，用于移除边沿的即时低血打点。
+    vars.MemoryBossLastHealthRatio = new Dictionary<long, float>();
 
     // Boss 血量里程碑日志状态。
     // 键：Boss_* 设置 id；值：已经达到的最低百分比档位（100/75/50/25/10）。
@@ -581,6 +612,7 @@ init
     {
         ((Dictionary<long, float>)vars.MemoryBossLastHealth).Remove(actor);
         ((Dictionary<long, bool>)vars.MemoryBossLastDead).Remove(actor);
+        ((Dictionary<long, float>)vars.MemoryBossLastHealthRatio).Remove(actor);
     });
 
     // ResetMemoryBossSession 操作。
@@ -867,6 +899,8 @@ update
         HashSet<string> loggedAppeared = (HashSet<string>)vars.MemoryBossLoggedAppeared;
         Dictionary<long, float> lastHealth = (Dictionary<long, float>)vars.MemoryBossLastHealth;
         Dictionary<long, bool> lastDead = (Dictionary<long, bool>)vars.MemoryBossLastDead;
+        Dictionary<long, float> lastHealthRatio =
+            (Dictionary<long, float>)vars.MemoryBossLastHealthRatio;
         Dictionary<string, int> healthMilestone = (Dictionary<string, int>)vars.MemoryBossHealthMilestone;
         Dictionary<long, long[]> actorCache = (Dictionary<long, long[]>)vars.MemoryBossActorCache;
         Action<long> forgetActor = (Action<long>)vars.ForgetMemoryBossActor;
@@ -878,7 +912,7 @@ update
         // [0] UClass 指针，[1] 对象 FName id，[2] InternalIndex，
         // [3] AttributeSetBase，[4] AbilitySystemComponent，[5] 刷新时间。
         // seen 记录当前仇恨列表中的已配置 Actor。
-        // checks 记录进入两秒移除宽限期的 Actor。
+        // checks 记录进入六十秒移除宽限期的 Actor。
         // armed 证明该地址此前产生过有效的存活样本。
 
         // 处理仇恨列表中的每个 Actor。每轮都读取对象元数据；
@@ -1004,6 +1038,10 @@ update
             float maxHealth = actorState.Item3;
             lastHealth[actor] = health;
             lastDead[actor] = dead;
+            if (maxHealth > 0.001f)
+            {
+                lastHealthRatio[actor] = health / maxHealth;
+            }
 
             // 只有有效且未死亡的观测才会武装 Actor。日志和血量里程碑
             // 只用于诊断，不改变打点决策。
@@ -1098,9 +1136,9 @@ update
             unknownMissingSince.Remove(actor);
         }
 
-        // 已配置 Actor 离开 BeHatredList 时不能立即打点。先校验身份：
-        // 身份立即失效视为销毁或地址复用边沿；身份仍有效则进入两秒宽限期，
-        // 以便捕捉同一时刻出现的死亡 Tag 或零生命值。
+        // 已配置 Actor 离开 BeHatredList 时先校验身份。阶段切换会更换类名和
+        // 设置 ID，因此旧 Actor 的移除是该阶段的有效结束边沿；若当前或最近
+        // 一次有效生命值比例已进入低血线，就在同一轮 update 中立即打点。
         List<long> seenActors = new List<long>((IEnumerable<long>)seen.Keys);
         foreach (long actor in seenActors)
         {
@@ -1132,8 +1170,63 @@ update
                 continue;
             }
 
+            Tuple<int, float, float> removalState = readActorState(record);
+            bool removalStateValid = removalState != null;
+            bool removalDead = removalStateValid && (removalState.Item1 & 1) != 0;
+            float removalHealth = 0.0f;
+            float removalMaxHealth = 0.0f;
+            float removalRatio = 1.0f;
+            if (removalStateValid)
+            {
+                removalHealth = removalState.Item2;
+                removalMaxHealth = removalState.Item3;
+                lastHealth[actor] = removalHealth;
+                lastDead[actor] = removalDead;
+                if (removalMaxHealth > 0.001f)
+                {
+                    removalRatio = removalHealth / removalMaxHealth;
+                    lastHealthRatio[actor] = removalRatio;
+                }
+            }
+            else
+            {
+                lastHealth.TryGetValue(actor, out removalHealth);
+                float cachedRatio;
+                if (lastHealthRatio.TryGetValue(actor, out cachedRatio))
+                {
+                    removalRatio = cachedRatio;
+                }
+            }
+
+            bool lowHealthRemoval = removalRatio <= (float)vars.BossLowHealthRemovalRatio;
+            if (bossRunning && armed.Contains(actor)
+                && (removalDead
+                    || (removalStateValid && removalHealth <= 0.001f)
+                    || lowHealthRemoval))
+            {
+                string reason;
+                if (removalDead)
+                {
+                    reason = "dead-tag-on-removal,health=" + removalHealth.ToString("0.##");
+                }
+                else if (removalStateValid && removalHealth <= 0.001f)
+                {
+                    reason = "zero-health-on-removal,health=" + removalHealth.ToString("0.##");
+                }
+                else
+                {
+                    reason = "low-health-removal,health=" + removalHealth.ToString("0.##")
+                        + ",percent=" + (removalRatio * 100.0f).ToString("0.###");
+                }
+
+                ((Action<string, string>)vars.QueueMemoryBoss)(setting, reason);
+                forgetActor(actor);
+                forgetActorCache(actor);
+                continue;
+            }
+
             checks[actor] = setting;
-            checkUntil[actor] = nowTicks + TimeSpan.TicksPerSecond * 2;
+            checkUntil[actor] = nowTicks + (long)vars.BossRemovalGraceTicks;
         }
 
         // 宽限期内继续用缓存的子组件读取 Dead 和生命值，
@@ -1171,6 +1264,10 @@ update
                 maxHealth = actorState.Item3;
                 lastHealth[actor] = health;
                 lastDead[actor] = dead;
+                if (maxHealth > 0.001f)
+                {
+                    lastHealthRatio[actor] = health / maxHealth;
+                }
             }
 
             if (bossRunning && armed.Contains(actor)

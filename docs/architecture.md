@@ -36,8 +36,10 @@ the script pauses rather than reporting gameplay.
 
 The memory splitter watches the player's `BeHatredList`, matches actor classes to
 the configured Boss settings, and splits on an observed `CharacterState.Dead`
-tag or a validated actor destruction edge. It keeps a two-second grace window so
-an actor leaving combat while still alive does not split.
+tag, zero health, or a validated actor destruction edge. Because phase changes
+use distinct actor classes and settings, an armed actor that leaves the list at
+or below 2% health is split in the same update. Other removal edges retain a
+sixty-second observation window for delayed death signals.
 
 `Components/PBZ-AutoSplitter_BySave.asl` is the previous save-backed variant and
 uses `PBZSaveReader.dll`; it remains available for comparison and fallback.

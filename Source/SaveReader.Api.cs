@@ -19,7 +19,7 @@ namespace PBZ
 
         public static string Version
         {
-            get { return "2.2.0"; }
+            get { return "2.2.2"; }
         }
 
         /// <summary>

@@ -5,7 +5,7 @@ while the game is loading, starts the timer when gameplay begins, and creates
 boss splits directly from live game memory. A save-backed variant remains
 available for comparison and fallback.
 
-> Compatibility: version 2.2.0 was validated against game build
+> Compatibility: version 2.2.2 targets game build
 > `CL-301524_JKS-17219`. Game updates can change the memory layout used for
 > loading detection and memory-only boss tracking. Save-file boss tracking and
 > the clean-room decoder are independent of those offsets.
@@ -51,6 +51,8 @@ available for comparison and fallback.
 
 All Boss toggles are enabled by default. Use `AutoSplitEnabled` to disable
 automatic split triggering without disabling Boss detection or logging.
+The Boss toggles are loaded after a supported PBZ game process is matched, so
+they may be absent while the game is closed or still starting.
 
 `PBZ-AutoSplitter.asl` reads live Boss actors, active combat tags, health, and
 death/destruction edges directly from the game process. It does not load
@@ -71,7 +73,8 @@ Start the LiveSplit timer before beginning a run. The default script:
 2. Reads the player's active `BeHatredList`.
 3. Matches active Boss actor classes against the enabled settings.
 4. Tracks `CharacterState.Dead`, health, and actor destruction.
-5. Queues a split immediately when a watched Boss dies.
+5. Queues a split immediately when a watched Boss dies, reaches zero health,
+   or leaves `BeHatredList` at or below 2% health.
 
 Main-story and side-boss groups in the default XML are heuristics. Adjust the
 toggles to match the run category.

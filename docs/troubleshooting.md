@@ -37,9 +37,10 @@ Memory-only variant:
 - Check `Logs/PBZ-AutoSplitter.log` for `boss appeared`, `boss died`, and
   `boss split`.
 
-`boss removal not confirmed` can appear after a successful split when the dead
-Boss actor remains alive in memory for more than the two-second grace period.
-It does not undo a death or split that was already logged.
+Low-health removal at or below 2% is split in the same update. Other removal
+edges use a sixty-second observation window. `boss removal not confirmed` can
+still appear after a successful split when the dead Boss actor remains alive in
+memory for longer than that window. It does not undo a split already logged.
 
 Save-backed variant:
 
@@ -52,7 +53,7 @@ Save-backed variant:
 
 ## Game time never pauses
 
-The live loading detection is build-specific. Version 2.2.0 was validated
+The live loading detection is build-specific. Version 2.2.2 targets
 against build `CL-301524_JKS-17219`. A game update may require new module offsets
 and a pointer-chain validation pass.
 

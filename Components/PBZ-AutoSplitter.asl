@@ -20,26 +20,34 @@ startup
         catch {}
     });
 
-    try
+    vars.SettingsLoaded = false;
+    vars.LoadSettings = (Action)(() =>
     {
-
-        string culture = System.Globalization.CultureInfo.CurrentCulture.Name;
-        string settingsPath = Path.Combine(componentDir, "PBZ.BossSettings." + culture + ".xml");
-        if (!File.Exists(settingsPath))
+        if (!(bool)vars.SettingsLoaded)
         {
-            string language = culture.Split('-')[0];
-            settingsPath = Path.Combine(componentDir, "PBZ.BossSettings." + language + ".xml");
-        }
-        if (!File.Exists(settingsPath))
-            settingsPath = Path.Combine(componentDir, "PBZ.BossSettings.xml");
+            try
+            {
 
-        vars.Helper.Settings.CreateFromXml(settingsPath);
-        ((Action<string>)vars.Log)("settings loaded: culture=" + culture + " file=" + settingsPath);
-    }
-    catch (Exception ex)
-    {
-        ((Action<string>)vars.Log)("settings load failed: " + ex.Message);
-    }
+                string culture = System.Globalization.CultureInfo.CurrentCulture.Name;
+                string settingsPath = Path.Combine(componentDir, "PBZ.BossSettings." + culture + ".xml");
+                if (!File.Exists(settingsPath))
+                {
+                    string language = culture.Split('-')[0];
+                    settingsPath = Path.Combine(componentDir, "PBZ.BossSettings." + language + ".xml");
+                }
+                if (!File.Exists(settingsPath))
+                    settingsPath = Path.Combine(componentDir, "PBZ.BossSettings.xml");
+
+                vars.Helper.Settings.CreateFromXml(settingsPath);
+                vars.SettingsLoaded = true;
+                ((Action<string>)vars.Log)("settings loaded: culture=" + culture + " file=" + settingsPath);
+            }
+            catch (Exception ex)
+            {
+                ((Action<string>)vars.Log)("settings load failed: " + ex.Message);
+            }
+        }
+    });
 }
 
 init
@@ -69,10 +77,24 @@ init
         return best;
     });
 
-    Process target = ((Func<Process>)vars.FindGame)();
+    Process target = null;
+    int findAttempt = 0;
+    for (; findAttempt < 20; findAttempt++)
+    {
+        target = ((Func<Process>)vars.FindGame)();
+        if (target != null) break;
+        if (findAttempt < 19) System.Threading.Thread.Sleep(50);
+    }
+
     if (target != null)
     {
         vars.Helper.Game = target;
+        ((Action)vars.LoadSettings)();
+        if (findAttempt > 0)
+        {
+            ((Action<string>)vars.Log)(
+                "build gate: matched PBZ process after retry=" + findAttempt);
+        }
     }
     else
     {
@@ -98,6 +120,8 @@ init
     vars.BossScanIntervalTicks = TimeSpan.TicksPerMillisecond * 50;
     vars.IdleBossScanIntervalTicks = TimeSpan.TicksPerMillisecond * 100;
     vars.PlayerReconcileIntervalTicks = TimeSpan.TicksPerSecond * 2;
+    vars.BossRemovalGraceTicks = TimeSpan.TicksPerSecond * 60;
+    vars.BossLowHealthRemovalRatio = 0.02f;
 
     vars.MemoryBossFNameCache = new Dictionary<int, string>();
 
@@ -346,6 +370,7 @@ init
         ((HashSet<long>)vars.MemoryBossArmed).Clear();
         ((Dictionary<long, float>)vars.MemoryBossLastHealth).Clear();
         ((Dictionary<long, bool>)vars.MemoryBossLastDead).Clear();
+        ((Dictionary<long, float>)vars.MemoryBossLastHealthRatio).Clear();
     });
 
     vars.MemoryBossPending = new Queue<string>();
@@ -370,6 +395,8 @@ init
 
     vars.MemoryBossLastDead = new Dictionary<long, bool>();
 
+    vars.MemoryBossLastHealthRatio = new Dictionary<long, float>();
+
     vars.MemoryBossHealthMilestone = new Dictionary<string, int>();
 
     vars.ForgetMemoryBossActor = (Action<long>)(actor =>
@@ -389,6 +416,7 @@ init
     {
         ((Dictionary<long, float>)vars.MemoryBossLastHealth).Remove(actor);
         ((Dictionary<long, bool>)vars.MemoryBossLastDead).Remove(actor);
+        ((Dictionary<long, float>)vars.MemoryBossLastHealthRatio).Remove(actor);
     });
 
     vars.ResetMemoryBossSession = (Action<bool>)(resetNextScan =>
@@ -624,6 +652,8 @@ update
         HashSet<string> loggedAppeared = (HashSet<string>)vars.MemoryBossLoggedAppeared;
         Dictionary<long, float> lastHealth = (Dictionary<long, float>)vars.MemoryBossLastHealth;
         Dictionary<long, bool> lastDead = (Dictionary<long, bool>)vars.MemoryBossLastDead;
+        Dictionary<long, float> lastHealthRatio =
+            (Dictionary<long, float>)vars.MemoryBossLastHealthRatio;
         Dictionary<string, int> healthMilestone = (Dictionary<string, int>)vars.MemoryBossHealthMilestone;
         Dictionary<long, long[]> actorCache = (Dictionary<long, long[]>)vars.MemoryBossActorCache;
         Action<long> forgetActor = (Action<long>)vars.ForgetMemoryBossActor;
@@ -745,6 +775,10 @@ update
             float maxHealth = actorState.Item3;
             lastHealth[actor] = health;
             lastDead[actor] = dead;
+            if (maxHealth > 0.001f)
+            {
+                lastHealthRatio[actor] = health / maxHealth;
+            }
 
             if (!dead && health > 0.001f)
             {
@@ -862,8 +896,63 @@ update
                 continue;
             }
 
+            Tuple<int, float, float> removalState = readActorState(record);
+            bool removalStateValid = removalState != null;
+            bool removalDead = removalStateValid && (removalState.Item1 & 1) != 0;
+            float removalHealth = 0.0f;
+            float removalMaxHealth = 0.0f;
+            float removalRatio = 1.0f;
+            if (removalStateValid)
+            {
+                removalHealth = removalState.Item2;
+                removalMaxHealth = removalState.Item3;
+                lastHealth[actor] = removalHealth;
+                lastDead[actor] = removalDead;
+                if (removalMaxHealth > 0.001f)
+                {
+                    removalRatio = removalHealth / removalMaxHealth;
+                    lastHealthRatio[actor] = removalRatio;
+                }
+            }
+            else
+            {
+                lastHealth.TryGetValue(actor, out removalHealth);
+                float cachedRatio;
+                if (lastHealthRatio.TryGetValue(actor, out cachedRatio))
+                {
+                    removalRatio = cachedRatio;
+                }
+            }
+
+            bool lowHealthRemoval = removalRatio <= (float)vars.BossLowHealthRemovalRatio;
+            if (bossRunning && armed.Contains(actor)
+                && (removalDead
+                    || (removalStateValid && removalHealth <= 0.001f)
+                    || lowHealthRemoval))
+            {
+                string reason;
+                if (removalDead)
+                {
+                    reason = "dead-tag-on-removal,health=" + removalHealth.ToString("0.##");
+                }
+                else if (removalStateValid && removalHealth <= 0.001f)
+                {
+                    reason = "zero-health-on-removal,health=" + removalHealth.ToString("0.##");
+                }
+                else
+                {
+                    reason = "low-health-removal,health=" + removalHealth.ToString("0.##")
+                        + ",percent=" + (removalRatio * 100.0f).ToString("0.###");
+                }
+
+                ((Action<string, string>)vars.QueueMemoryBoss)(setting, reason);
+                forgetActor(actor);
+                forgetActorCache(actor);
+                continue;
+            }
+
             checks[actor] = setting;
-            checkUntil[actor] = nowTicks + TimeSpan.TicksPerSecond * 2;
+            checkUntil[actor] = nowTicks + (long)vars.BossRemovalGraceTicks;
         }
 
         List<long> checkActors = new List<long>((IEnumerable<long>)checks.Keys);
@@ -899,6 +988,10 @@ update
                 maxHealth = actorState.Item3;
                 lastHealth[actor] = health;
                 lastDead[actor] = dead;
+                if (maxHealth > 0.001f)
+                {
+                    lastHealthRatio[actor] = health / maxHealth;
+                }
             }
 
             if (bossRunning && armed.Contains(actor)

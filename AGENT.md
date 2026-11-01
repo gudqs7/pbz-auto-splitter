@@ -2,7 +2,9 @@
 
 This repository is the standalone source and release package for the Phantom
 Blade Zero LiveSplit auto splitter. Read `README.md` and the relevant file under
-`docs/` before changing behavior.
+`docs/` before changing behavior. For generation, comments, Boss caches,
+GameplayTags, synchronization, or release work, read
+`docs/maintenance-lessons.md` first.
 
 ## Runtime contract
 
@@ -35,6 +37,8 @@ Blade Zero LiveSplit auto splitter. Read `README.md` and the relevant file under
 - `Source/Runtime/PBZ-AutoSplitter_BySave.asl`: commented save-backed source.
 - `Source/Runtime/PBZ.BossSettings*.xml`: commented settings source.
 - `Source/build_pbz_runtime.ps1`: generates comment-free runtime files.
+- `docs/maintenance-lessons.md`: accumulated maintenance rules and technical
+  pitfalls from PBZ implementation sessions.
 - `Components/*.asl` and `Components/PBZ.BossSettings*.xml`: generated runtime
   files. Do not edit them directly.
 
@@ -82,6 +86,8 @@ executable and an Oodle DLL path to `PBZSaveReader.Benchmark.exe`.
 - Edit ASL/XML under `Source/Runtime`, then regenerate runtime files with
   `Source/build_pbz_runtime.ps1`. Never add comments directly under
   `Components`.
+- Re-read `docs/maintenance-lessons.md` before changing Boss cache keys,
+  GameplayTag masks, runtime encoding, or release packaging.
 - Do not add game binaries, `oo2core_*.dll`, save files, logs, crash dumps, or
   machine-specific absolute paths.
 - Do not change the default boss toggles without checking the XML against a

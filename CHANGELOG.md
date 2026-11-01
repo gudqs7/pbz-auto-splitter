@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.2.2 - 2026-11-02
+
+- Deferred Boss settings XML loading until a supported PBZ game process is
+  matched, and added bounded process-discovery retries for Steam bootstrap
+  races.
+- Added an immediate low-health removal split when an armed Boss leaves
+  `BeHatredList` at or below 2% health, using current or last known health.
+- Retained a sixty-second observation window for other removal edges that may
+  expose a delayed death tag or zero-health signal.
+- Excluded local runtime logs from release archives.
+- Updated Boss removal diagnostics, runtime documentation, and maintenance
+  guidance.
+
 ## 2.2.1 - 2026-11-01
 
 - Moved commented ASL/XML source under `Source/Runtime` and added a runtime

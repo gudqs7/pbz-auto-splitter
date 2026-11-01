@@ -12,7 +12,7 @@
 输出最终压缩包路径和字节数。
 #>
 param(
-    [string]$Version = "2.2.1",
+    [string]$Version = "2.2.2",
     [string]$OutputPath
 )
 
@@ -49,8 +49,15 @@ try {
         -Destination $stage
     Copy-Item -LiteralPath (Join-Path $repositoryRoot "docs") `
         -Destination $stage -Recurse
-    Copy-Item -LiteralPath (Join-Path $repositoryRoot "Components") `
-        -Destination $stage -Recurse
+
+    # 运行时 ASL/XML 由生成器写入；这里只复制发布所需的二进制依赖，
+    # 避免把 Components 下的日志、调试产物等本地文件带进发布包。
+    $stagedComponents = Join-Path $stage "Components"
+    New-Item -ItemType Directory -Force -Path $stagedComponents | Out-Null
+    foreach ($binaryName in @("asl-help", "PBZSaveReader.dll")) {
+        Copy-Item -LiteralPath (Join-Path $repositoryRoot "Components\$binaryName") `
+            -Destination (Join-Path $stagedComponents $binaryName)
+    }
 
     $stagedSource = Join-Path $stage "Source"
     New-Item -ItemType Directory -Force -Path $stagedSource | Out-Null
@@ -59,7 +66,7 @@ try {
 
     # 直接在暂存 Components 目录中重新生成运行时文件。
     # 发布包中的 ASL 和 XML 绝不能包含注释。
-    & (Join-Path $sourceRoot "build_pbz_runtime.ps1") -RepositoryRoot $repositoryRoot -OutputDirectory (Join-Path $stage "Components")
+    & (Join-Path $sourceRoot "build_pbz_runtime.ps1") -RepositoryRoot $repositoryRoot -OutputDirectory $stagedComponents
 
     # 清理所有发布代码和配置文件中的注释。这样即使发布包包含 Source，
     # 其中也只有无注释版本；仓库源码仍保留开发注释。
