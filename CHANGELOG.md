@@ -7,6 +7,12 @@
   combat actors, gameplay tags, health, and actor destruction.
 - Added transition-only file logging for Boss appearance, health milestones,
   death, and split events.
+- Added logs for unconfigured Boss candidates when they appear and when they
+  remain removed from `BeHatredList`, without entering the split queue.
+- Added an `AutoSplitEnabled` master switch, enabled by default. Boss detection
+  and logging continue while automatic split triggering is disabled.
+- Enabled all Boss settings by default at the user's request; the per-Boss
+  toggles remain available for narrowing a run.
 - Fixed memory Boss detection when `BeHatredList` becomes empty and its array
   pointer is cleared in the same update.
 - Reduced active-combat memory reads by caching UClass names, player/component

@@ -1,5 +1,6 @@
 <Settings>
     <!-- Groups follow DT_CodexEnemyDataTable.OwnMapID and DT_MapData. BossName_xxx keys are used only for ordering. -->
+    <Setting Id="AutoSplitEnabled" Label="自动打点总开关" State="true" />
     <Setting Id="BossSplits" Label="Boss 击杀自动打点" State="true">
         <Setting Id="MapPrologue" Label="序章" State="true">
             <Setting Id="Boss_BP_Monster_ZuoShang" Label="“组织”冥主：左殇" State="true" />
@@ -12,7 +13,7 @@
             <Setting Id="Boss_BP_Monster_AHua_GuiTouDao" Label="新娘阿花" State="true" />
             <Setting Id="Boss_BP_Monster_HookMan" Label="“组织”猎杀者：追命" State="true" />
             <Setting Id="Boss_BP_Monster_HookMan_P2" Label="追命：六绝凶镰" State="true" />
-            <Setting Id="Boss_BP_Monster_Scavenger" Label="活人偶清道夫" State="false" />
+            <Setting Id="Boss_BP_Monster_Scavenger" Label="活人偶清道夫" State="true" />
             <Setting Id="Boss_BP_Monster_MoTian_LongZhu_01" Label="金面具黑衣人" State="true" />
             <Setting Id="Boss_BP_Monster_MoTian" Label="暗魔天堡之主：魔渊" State="true" />
         </Setting>
@@ -31,48 +32,48 @@
             <Setting Id="Boss_BP_Monster_MuXiaoKui" Label="“组织”少主：沐小葵" State="true" />
             <Setting Id="Boss_BP_Monster_MuXiaoKui_P2" Label="沐小葵：铁玉女王" State="true" />
             <Setting Id="Boss_BP_Monster_Danghui" Label="操偶师：荡秽" State="true" />
-            <Setting Id="Boss_BP_Monster_QiShu_Huo" Label="灭法之法：炎茹" State="false" />
+            <Setting Id="Boss_BP_Monster_QiShu_Huo" Label="灭法之法：炎茹" State="true" />
         </Setting>
         <Setting Id="MapPangzhen" Label="庞镇地区" State="true">
             <Setting Id="Boss_BP_Monster_GuiChai_Red" Label="鬼差队长：火流星" State="true" />
             <Setting Id="Boss_BP_Monster_GuiChai_Red_P2" Label="火流星：磷火意识" State="true" />
-            <Setting Id="Boss_BP_Monster_GuiChai_Yellow_MoDao" Label="鬼差高手：斩骑" State="false" />
-            <Setting Id="Boss_BP_Monster_WuXuan" Label="堕落将军：武轩" State="false" />
+            <Setting Id="Boss_BP_Monster_GuiChai_Yellow_MoDao" Label="鬼差高手：斩骑" State="true" />
+            <Setting Id="Boss_BP_Monster_WuXuan" Label="堕落将军：武轩" State="true" />
             <Setting Id="Boss_BP_Monster_GuWanYue" Label="女妖骨婉约" State="true" />
-            <Setting Id="Boss_BP_Monster_Maddoctor_Elite" Label="神医：谢秋冬" State="false" />
+            <Setting Id="Boss_BP_Monster_Maddoctor_Elite" Label="神医：谢秋冬" State="true" />
             <Setting Id="Boss_BP_Monster_ChangHong_Spear" Label="“雷枪”：长鸿" State="true" />
             <Setting Id="Boss_BP_Monster_ChangHong_P2" Label="长鸿：雷电枪骑" State="true" />
-            <Setting Id="Boss_BP_Monster_LionDancer" Label="被面具控制的舞狮尊主：烈焰" State="false" />
-            <Setting Id="Boss_BP_Monster_LionDancer_P2" Label="舞狮尊主的最后一舞" State="false" />
+            <Setting Id="Boss_BP_Monster_LionDancer" Label="被面具控制的舞狮尊主：烈焰" State="true" />
+            <Setting Id="Boss_BP_Monster_LionDancer_P2" Label="舞狮尊主的最后一舞" State="true" />
             <Setting Id="Boss_BP_Monster_GuiChai_Yellow_ShuangGou" Label="鬼差高手：勾魂" State="true" />
-            <Setting Id="Boss_BP_Monster_QiShu_Lei" Label="灭法之法：雷婷" State="false" />
+            <Setting Id="Boss_BP_Monster_QiShu_Lei" Label="灭法之法：雷婷" State="true" />
         </Setting>
         <Setting Id="MapMandateEncampment" Label="正道大营" State="true">
-            <Setting Id="Boss_BP_Monster_YuBi" Label="廿一号·剑偶：“玉璧”" State="false" />
+            <Setting Id="Boss_BP_Monster_YuBi" Label="廿一号·剑偶：“玉璧”" State="true" />
         </Setting>
         <Setting Id="MapMeiguLake" Label="梅谷湖" State="true">
-            <Setting Id="Boss_BP_Monster_GuiChai_Cyan_ShuangYue" Label="鬼差高手：断肠" State="false" />
+            <Setting Id="Boss_BP_Monster_GuiChai_Cyan_ShuangYue" Label="鬼差高手：断肠" State="true" />
             <Setting Id="Boss_BP_Monster_YanQianSui" Label="琴女烟千岁" State="true" />
-            <Setting Id="Boss_BP_Monster_QiShu_Du" Label="灭法之法：蛊鹤" State="false" />
-            <Setting Id="Boss_BP_Monster_FengXueDaoKe" Label="风雪刀客" State="false" />
+            <Setting Id="Boss_BP_Monster_QiShu_Du" Label="灭法之法：蛊鹤" State="true" />
+            <Setting Id="Boss_BP_Monster_FengXueDaoKe" Label="风雪刀客" State="true" />
         </Setting>
         <Setting Id="MapMountainOfImprisonment" Label="枷笼山" State="true">
-            <Setting Id="Boss_BP_Monster_YanYan_Club" Label="疯婆子奎艳艳" State="false" />
-            <Setting Id="Boss_BP_Monster_JadeMaskMan" Label="玉面郎君" State="false" />
-            <Setting Id="Boss_BP_Monster_MBoss" Label="昆仑叛教者：荒行子" State="false" />
-            <Setting Id="Boss_BP_Monster_MBossVariants" Label="荒行子：撕裂锯轮" State="false" />
+            <Setting Id="Boss_BP_Monster_YanYan_Club" Label="疯婆子奎艳艳" State="true" />
+            <Setting Id="Boss_BP_Monster_JadeMaskMan" Label="玉面郎君" State="true" />
+            <Setting Id="Boss_BP_Monster_MBoss" Label="昆仑叛教者：荒行子" State="true" />
+            <Setting Id="Boss_BP_Monster_MBossVariants" Label="荒行子：撕裂锯轮" State="true" />
         </Setting>
         <Setting Id="MapMirageEstate" Label="戏梦山庄" State="true">
-            <Setting Id="Boss_BP_Monster_FemaleVessel_YuDing" Label="十二号·偃月刀偶：“玉鼎”" State="false" />
+            <Setting Id="Boss_BP_Monster_FemaleVessel_YuDing" Label="十二号·偃月刀偶：“玉鼎”" State="true" />
             <Setting Id="Boss_BP_Monster_YingMei_RedShadowBoneBlade" Label="赤影骨刃：囚锋" State="true" />
             <Setting Id="Boss_BP_Monster_LeiDang" Label="“虎炮”：雷当" State="true" />
             <Setting Id="Boss_BP_Monster_LeiDang_P2" Label="雷当：独臂虎" State="true" />
         </Setting>
         <Setting Id="MapMountSoulrend" Label="断魂山" State="true">
-            <Setting Id="Boss_BP_Monster_PowerMan" Label="力者和锯者" State="false" />
-            <Setting Id="Boss_BP_Monster_PowerMan_P2" Label="力者：石破天惊之态" State="false" />
-            <Setting Id="Boss_BP_Monster_LengTu" Label="梦差：冷荼" State="false" />
-            <Setting Id="Boss_BP_Monster_MengHua" Label="救苦救难梦华圣母娘娘" State="false" />
+            <Setting Id="Boss_BP_Monster_PowerMan" Label="力者和锯者" State="true" />
+            <Setting Id="Boss_BP_Monster_PowerMan_P2" Label="力者：石破天惊之态" State="true" />
+            <Setting Id="Boss_BP_Monster_LengTu" Label="梦差：冷荼" State="true" />
+            <Setting Id="Boss_BP_Monster_MengHua" Label="救苦救难梦华圣母娘娘" State="true" />
             <Setting Id="Boss_BP_Monster_ZuoShang_Ending" Label="“组织”冥主：左殇（结局战）" State="true" />
             <Setting Id="Boss_BP_Monster_ZuoShang_P2" Label="左殇：真龙之躯" State="true" />
         </Setting>

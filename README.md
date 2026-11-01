@@ -14,6 +14,10 @@ available for comparison and fallback.
 
 - Load removal and game-time pause for menus, front-end worlds, and loading.
 - Memory-only boss kill tracking in the default auto splitter.
+- An `AutoSplitEnabled` master switch that can disable split triggering while
+  keeping Boss detection and logging active.
+- Logging for Boss candidates that are present in combat but missing from the
+  settings XML, without queuing a split.
 - A legacy save-file variant retained as `PBZ-AutoSplitter_BySave.asl`.
 - Boss split groups with individual toggles in the LiveSplit settings.
 - Chinese and English boss settings selected automatically from the Windows UI
@@ -44,6 +48,9 @@ available for comparison and fallback.
 3. Start LiveSplit.
 4. Add `PBZ-AutoSplitter.asl` as a Scriptable Auto Splitter.
 5. Enable the desired bosses under the auto splitter settings.
+
+All Boss toggles are enabled by default. Use `AutoSplitEnabled` to disable
+automatic split triggering without disabling Boss detection or logging.
 
 `PBZ-AutoSplitter.asl` reads live Boss actors, active combat tags, health, and
 death/destruction edges directly from the game process. It does not load

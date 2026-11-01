@@ -1,5 +1,6 @@
 <Settings>
     <!-- Groups follow DT_CodexEnemyDataTable.OwnMapID and DT_MapData. BossName_xxx keys are used only for ordering. -->
+    <Setting Id="AutoSplitEnabled" Label="Auto Splits Enabled" State="true" />
     <Setting Id="BossSplits" Label="Boss Auto Splits" State="true">
         <Setting Id="MapPrologue" Label="Prologue" State="true">
             <Setting Id="Boss_BP_Monster_ZuoShang" Label="Zuo Shang, the Order's Shadow Sovereign" State="true" />
@@ -12,7 +13,7 @@
             <Setting Id="Boss_BP_Monster_AHua_GuiTouDao" Label="Hua, Deadly Betrothed" State="true" />
             <Setting Id="Boss_BP_Monster_HookMan" Label="The Hunt, Hunter of the Order" State="true" />
             <Setting Id="Boss_BP_Monster_HookMan_P2" Label="The Hunt, Sixfold Scythe" State="true" />
-            <Setting Id="Boss_BP_Monster_Scavenger" Label="The Puppet Scavenger" State="false" />
+            <Setting Id="Boss_BP_Monster_Scavenger" Label="The Puppet Scavenger" State="true" />
             <Setting Id="Boss_BP_Monster_MoTian_LongZhu_01" Label="The Gold-Masked One" State="true" />
             <Setting Id="Boss_BP_Monster_MoTian" Label="Mó Yuan, Leader of the Bastion of Mó" State="true" />
         </Setting>
@@ -31,48 +32,48 @@
             <Setting Id="Boss_BP_Monster_MuXiaoKui" Label="Mu Xiaokui, Young Mistress of the Order" State="true" />
             <Setting Id="Boss_BP_Monster_MuXiaoKui_P2" Label="Mu Xiaokui, Queen of Iron and Jade" State="true" />
             <Setting Id="Boss_BP_Monster_Danghui" Label="Dusk, the Puppeteer" State="true" />
-            <Setting Id="Boss_BP_Monster_QiShu_Huo" Label="Acolyte Yanru" State="false" />
+            <Setting Id="Boss_BP_Monster_QiShu_Huo" Label="Acolyte Yanru" State="true" />
         </Setting>
         <Setting Id="MapPangzhen" Label="PANGZHEN" State="true">
             <Setting Id="Boss_BP_Monster_GuiChai_Red" Label="Blaze, Shadow Warden Captain" State="true" />
             <Setting Id="Boss_BP_Monster_GuiChai_Red_P2" Label="Blaze, Phosphor Consciousness" State="true" />
-            <Setting Id="Boss_BP_Monster_GuiChai_Yellow_MoDao" Label="Cavalrybane, Elite Shadow Warden" State="false" />
-            <Setting Id="Boss_BP_Monster_WuXuan" Label="Wu Xuan, the Fallen General" State="false" />
+            <Setting Id="Boss_BP_Monster_GuiChai_Yellow_MoDao" Label="Cavalrybane, Elite Shadow Warden" State="true" />
+            <Setting Id="Boss_BP_Monster_WuXuan" Label="Wu Xuan, the Fallen General" State="true" />
             <Setting Id="Boss_BP_Monster_GuWanYue" Label="Gu Wanyue, the Wailing Wraith" State="true" />
-            <Setting Id="Boss_BP_Monster_Maddoctor_Elite" Label="Xie Qiudong, the Divine Healer" State="false" />
+            <Setting Id="Boss_BP_Monster_Maddoctor_Elite" Label="Xie Qiudong, the Divine Healer" State="true" />
             <Setting Id="Boss_BP_Monster_ChangHong_Spear" Label="Chang Hong, the Thunder Spear" State="true" />
             <Setting Id="Boss_BP_Monster_ChangHong_P2" Label="Chang Hong, the Thunder Lancer" State="true" />
-            <Setting Id="Boss_BP_Monster_LionDancer" Label="Flame, the Mask-Bound Lion Dance Grandmaster" State="false" />
-            <Setting Id="Boss_BP_Monster_LionDancer_P2" Label="The Lion Dance Grandmaster's Final Dance" State="false" />
+            <Setting Id="Boss_BP_Monster_LionDancer" Label="Flame, the Mask-Bound Lion Dance Grandmaster" State="true" />
+            <Setting Id="Boss_BP_Monster_LionDancer_P2" Label="The Lion Dance Grandmaster's Final Dance" State="true" />
             <Setting Id="Boss_BP_Monster_GuiChai_Yellow_ShuangGou" Label="Soulclaimer, Elite Shadow Warden" State="true" />
-            <Setting Id="Boss_BP_Monster_QiShu_Lei" Label="Acolyte Lei Ting" State="false" />
+            <Setting Id="Boss_BP_Monster_QiShu_Lei" Label="Acolyte Lei Ting" State="true" />
         </Setting>
         <Setting Id="MapMandateEncampment" Label="MANDATE ENCAMPMENT" State="true">
-            <Setting Id="Boss_BP_Monster_YuBi" Label="Yubi, No. 21 Swordfighter Puppet" State="false" />
+            <Setting Id="Boss_BP_Monster_YuBi" Label="Yubi, No. 21 Swordfighter Puppet" State="true" />
         </Setting>
         <Setting Id="MapMeiguLake" Label="MEIGU LAKE" State="true">
-            <Setting Id="Boss_BP_Monster_GuiChai_Cyan_ShuangYue" Label="Heartpiercer, Elite Shadow Warden" State="false" />
+            <Setting Id="Boss_BP_Monster_GuiChai_Cyan_ShuangYue" Label="Heartpiercer, Elite Shadow Warden" State="true" />
             <Setting Id="Boss_BP_Monster_YanQianSui" Label="Yan Qiansui, the Zither Maiden" State="true" />
-            <Setting Id="Boss_BP_Monster_QiShu_Du" Label="Acolyte Guhe" State="false" />
-            <Setting Id="Boss_BP_Monster_FengXueDaoKe" Label="Blizzard Blademaster" State="false" />
+            <Setting Id="Boss_BP_Monster_QiShu_Du" Label="Acolyte Guhe" State="true" />
+            <Setting Id="Boss_BP_Monster_FengXueDaoKe" Label="Blizzard Blademaster" State="true" />
         </Setting>
         <Setting Id="MapMountainOfImprisonment" Label="MOUNTAIN OF IMPRISONMENT" State="true">
-            <Setting Id="Boss_BP_Monster_YanYan_Club" Label="Kui Yanyan, the Deranged" State="false" />
-            <Setting Id="Boss_BP_Monster_JadeMaskMan" Label="Jade-Face" State="false" />
-            <Setting Id="Boss_BP_Monster_MBoss" Label="Huangxing, the Kunlun Renegade" State="false" />
-            <Setting Id="Boss_BP_Monster_MBossVariants" Label="Huangxing, the Whirling Executioner" State="false" />
+            <Setting Id="Boss_BP_Monster_YanYan_Club" Label="Kui Yanyan, the Deranged" State="true" />
+            <Setting Id="Boss_BP_Monster_JadeMaskMan" Label="Jade-Face" State="true" />
+            <Setting Id="Boss_BP_Monster_MBoss" Label="Huangxing, the Kunlun Renegade" State="true" />
+            <Setting Id="Boss_BP_Monster_MBossVariants" Label="Huangxing, the Whirling Executioner" State="true" />
         </Setting>
         <Setting Id="MapMirageEstate" Label="MIRAGE ESTATE" State="true">
-            <Setting Id="Boss_BP_Monster_FemaleVessel_YuDing" Label="Yuding, No.12, Crescent Blade Puppet" State="false" />
+            <Setting Id="Boss_BP_Monster_FemaleVessel_YuDing" Label="Yuding, No.12, Crescent Blade Puppet" State="true" />
             <Setting Id="Boss_BP_Monster_YingMei_RedShadowBoneBlade" Label="Qiu Feng, the Crimson Boneblade" State="true" />
             <Setting Id="Boss_BP_Monster_LeiDang" Label="Lei Dang, the Tiger Cannon" State="true" />
             <Setting Id="Boss_BP_Monster_LeiDang_P2" Label="Lei Dang, One-Armed Tiger" State="true" />
         </Setting>
         <Setting Id="MapMountSoulrend" Label="MOUNT SOULREND" State="true">
-            <Setting Id="Boss_BP_Monster_PowerMan" Label="The Crusher and the Saw" State="false" />
-            <Setting Id="Boss_BP_Monster_PowerMan_P2" Label="The Crusher, Earthshattering Form" State="false" />
-            <Setting Id="Boss_BP_Monster_LengTu" Label="Leng Tu, Herald of the Veil" State="false" />
-            <Setting Id="Boss_BP_Monster_MengHua" Label="Meng Hua, The Merciful Lady of the Blossom Veil" State="false" />
+            <Setting Id="Boss_BP_Monster_PowerMan" Label="The Crusher and the Saw" State="true" />
+            <Setting Id="Boss_BP_Monster_PowerMan_P2" Label="The Crusher, Earthshattering Form" State="true" />
+            <Setting Id="Boss_BP_Monster_LengTu" Label="Leng Tu, Herald of the Veil" State="true" />
+            <Setting Id="Boss_BP_Monster_MengHua" Label="Meng Hua, The Merciful Lady of the Blossom Veil" State="true" />
             <Setting Id="Boss_BP_Monster_ZuoShang_Ending" Label="Zuo Shang, the Order's Shadow Sovereign (Finale)" State="true" />
             <Setting Id="Boss_BP_Monster_ZuoShang_P2" Label="Zuo Shang, the True Lóng" State="true" />
         </Setting>

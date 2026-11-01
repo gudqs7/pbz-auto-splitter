@@ -272,6 +272,18 @@ init
         return settings.ContainsKey(setting) ? setting : null;
     });
 
+    // 总开关只控制是否入队和触发 split，不关闭 Boss 检测与日志。
+    // 设置缺失时按默认开启处理；读取异常时 fail closed。
+    vars.IsAutoSplitEnabled = (Func<bool>)(() =>
+    {
+        try
+        {
+            return !settings.ContainsKey("AutoSplitEnabled")
+                || (bool)settings["AutoSplitEnabled"];
+        }
+        catch { return false; }
+    });
+
     // 按主 update 路径的原有顺序读取玩家状态：先生命值，后 GameplayTag。
     // 失败返回 null，调用方可以重新解析玩家后只重试一次。
     vars.ReadMemoryBossPlayerState = (Func<long[], Tuple<float, float, bool, int>>)(record =>
@@ -349,6 +361,8 @@ init
     vars.ClearMemoryBossState = (Action)(() =>
     {
         ((Dictionary<long, string>)vars.MemoryBossSeen).Clear();
+        ((Dictionary<long, string>)vars.MemoryBossUnknownSeen).Clear();
+        ((Dictionary<long, long>)vars.MemoryBossUnknownMissingSince).Clear();
         ((Dictionary<long, string>)vars.MemoryBossChecks).Clear();
         ((Dictionary<long, long>)vars.MemoryBossCheckUntil).Clear();
         ((HashSet<long>)vars.MemoryBossArmed).Clear();
@@ -360,6 +374,8 @@ init
     vars.MemoryBossPending = new Queue<string>();
     vars.MemoryBossConsumed = new HashSet<string>();
     vars.MemoryBossSeen = new Dictionary<long, string>();
+    vars.MemoryBossUnknownSeen = new Dictionary<long, string>();
+    vars.MemoryBossUnknownMissingSince = new Dictionary<long, long>();
     vars.MemoryBossChecks = new Dictionary<long, string>();
     vars.MemoryBossCheckUntil = new Dictionary<long, long>();
     vars.MemoryBossArmed = new HashSet<long>();
@@ -411,13 +427,20 @@ init
             {
                 consumed.Add(setting);
 
-                Queue<string> pending = (Queue<string>)vars.MemoryBossPending;
-                pending.Enqueue(setting);
+                bool autoSplitEnabled = ((Func<bool>)vars.IsAutoSplitEnabled)();
+                bool bossEnabled = settings.ContainsKey(setting) && (bool)settings[setting];
                 ((Action<string>)vars.Log)(
                     "boss died: setting=" + setting
                     + " reason=" + reason
                     + " world=" + (string)vars.WorldName
-                    + " phase=" + timer.CurrentPhase.ToString());
+                    + " phase=" + timer.CurrentPhase.ToString()
+                    + " auto-split=" + autoSplitEnabled
+                    + " boss-setting=" + bossEnabled);
+                if (autoSplitEnabled && bossEnabled)
+                {
+                    Queue<string> pending = (Queue<string>)vars.MemoryBossPending;
+                    pending.Enqueue(setting);
+                }
             }
         }
     });
@@ -621,6 +644,10 @@ update
 
         // Actor 级状态：当前列表、移除宽限、武装状态和最近样本。
         Dictionary<long, string> seen = (Dictionary<long, string>)vars.MemoryBossSeen;
+        Dictionary<long, string> unknownSeen =
+            (Dictionary<long, string>)vars.MemoryBossUnknownSeen;
+        Dictionary<long, long> unknownMissingSince =
+            (Dictionary<long, long>)vars.MemoryBossUnknownMissingSince;
         Dictionary<long, string> checks = (Dictionary<long, string>)vars.MemoryBossChecks;
         Dictionary<long, long> checkUntil = (Dictionary<long, long>)vars.MemoryBossCheckUntil;
         HashSet<long> armed = (HashSet<long>)vars.MemoryBossArmed;
@@ -646,7 +673,28 @@ update
 
             string className = readClassName(meta[0]);
             string setting = ((Func<string, string>)vars.GetBossSetting)(className);
-            if (string.IsNullOrEmpty(setting) || !(bool)settings[setting]) continue;
+            if (string.IsNullOrEmpty(setting))
+            {
+                if (string.IsNullOrEmpty(className)
+                    || !className.EndsWith("_C", StringComparison.Ordinal)) continue;
+
+                currentActors.Add(actor);
+                unknownMissingSince.Remove(actor);
+                if (!unknownSeen.ContainsKey(actor))
+                {
+                    forgetActor(actor);
+                    forgetActorCache(actor);
+                    forgetActorSamples(actor);
+                    ((Action<string>)vars.Log)(
+                        "unconfigured boss appeared: class=" + className
+                        + " actor=0x" + actor.ToString("X")
+                        + " world=" + (string)vars.WorldName
+                        + " phase=" + timer.CurrentPhase.ToString());
+                }
+                unknownSeen[actor] = className;
+                continue;
+            }
+            if (!(bool)settings[setting]) continue;
 
             long[] record;
             if (!actorCache.TryGetValue(actor, out record)
@@ -787,6 +835,35 @@ update
             checkUntil.Remove(actor);
         }
 
+        // 未配置 Boss 不进入打点状态机，仅记录出现和稳定移除/死亡边沿。
+        List<long> unknownActors = new List<long>((IEnumerable<long>)unknownSeen.Keys);
+        foreach (long actor in unknownActors)
+        {
+            if (currentActors.Contains(actor))
+            {
+                unknownMissingSince.Remove(actor);
+                continue;
+            }
+
+            long missingSince;
+            if (!unknownMissingSince.TryGetValue(actor, out missingSince))
+            {
+                unknownMissingSince[actor] = nowTicks;
+                continue;
+            }
+            if (nowTicks < missingSince + (long)vars.PlayerReconcileIntervalTicks)
+                continue;
+
+            string className = unknownSeen[actor];
+            ((Action<string>)vars.Log)(
+                "unconfigured boss died/removed: class=" + className
+                + " actor=0x" + actor.ToString("X")
+                + " world=" + (string)vars.WorldName
+                + " phase=" + timer.CurrentPhase.ToString());
+            unknownSeen.Remove(actor);
+            unknownMissingSince.Remove(actor);
+        }
+
         // Actor 从 BeHatredList 消失后不立即打点：
         // 先校验身份，确认对象未被销毁或地址复用后，再进入两秒移除宽限。
         List<long> seenActors = new List<long>((IEnumerable<long>)seen.Keys);
@@ -922,6 +999,11 @@ split
 {
     // 只在计时器 Running 阶段消费待处理 Boss，避免暂停或待机时误打点。
     if ((bool)vars.Paused) return false;
+    if (!((Func<bool>)vars.IsAutoSplitEnabled)())
+    {
+        ((Queue<string>)vars.MemoryBossPending).Clear();
+        return false;
+    }
     if (timer.CurrentPhase != TimerPhase.Running) return false;
 
     Queue<string> pending = (Queue<string>)vars.MemoryBossPending;
