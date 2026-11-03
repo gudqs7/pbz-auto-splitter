@@ -15,6 +15,8 @@ GameplayTags, synchronization, or release work, read
   `Components`, release archives, and the local LiveSplit `Components` directory
   are generated without comments.
 - Both ASLs load `Components/asl-help` and a language-matched boss settings XML.
+- Both ASLs load their settings XML during `startup`; `init` only performs and
+  logs the PBZ process build gate.
   They check the full culture name, then the base language, before falling back
   to `Components/PBZ.BossSettings.xml`.
 - Only the BySave variant loads `Components/PBZSaveReader.dll`.

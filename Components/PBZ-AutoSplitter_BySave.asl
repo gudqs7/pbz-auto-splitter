@@ -33,6 +33,7 @@ startup
             }
         }
     });
+    ((Action)vars.LoadSettings)();
 }
 
 init
@@ -66,7 +67,7 @@ init
     if (target != null)
     {
         vars.Helper.Game = target;
-        ((Action)vars.LoadSettings)();
+        print("[PBZ] build gate: matched PBZ process, retry=" + findAttempt);
     }
     else
     {

@@ -12,7 +12,7 @@
 输出最终压缩包路径和字节数。
 #>
 param(
-    [string]$Version = "2.2.2",
+    [string]$Version = "2.2.3",
     [string]$OutputPath
 )
 

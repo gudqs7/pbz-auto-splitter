@@ -37,6 +37,32 @@ foreach ($xmlPath in $xmlFiles) {
     Assert-XmlCommentsRemoved -Path $xmlPath
 }
 
+# 设置 XML 必须随脚本启动加载，不能重新放回受游戏进程门禁保护的 init。
+foreach ($aslPath in $aslFiles) {
+    $text = [IO.File]::ReadAllText($aslPath)
+    $startupIndex = $text.IndexOf("`nstartup", [StringComparison]::Ordinal)
+    $initIndex = $text.IndexOf("`ninit", [StringComparison]::Ordinal)
+    if ($startupIndex -lt 0 -or $initIndex -le $startupIndex) {
+        throw "Could not locate startup/init lifecycle blocks: $aslPath"
+    }
+
+    $startupText = $text.Substring($startupIndex, $initIndex - $startupIndex)
+    $initText = $text.Substring($initIndex)
+    $loadInvocation = "((Action)vars.LoadSettings)();"
+    if (-not $startupText.Contains($loadInvocation)) {
+        throw "Settings are not loaded during startup: $aslPath"
+    }
+    if ($initText.Contains($loadInvocation)) {
+        throw "Settings must not be loaded during init: $aslPath"
+    }
+    if (-not $initText.Contains("build gate: matched PBZ process")) {
+        throw "Missing build-gate success log: $aslPath"
+    }
+    if (-not $initText.Contains("build gate: no matching PBZ process")) {
+        throw "Missing build-gate failure log: $aslPath"
+    }
+}
+
 $csc = Join-Path $env:WINDIR "Microsoft.NET\Framework64\v4.0.30319\csc.exe"
 if (-not (Test-Path -LiteralPath $csc -PathType Leaf)) {
     throw "C# compiler was not found: $csc"

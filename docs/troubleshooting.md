@@ -53,7 +53,7 @@ Save-backed variant:
 
 ## Game time never pauses
 
-The live loading detection is build-specific. Version 2.2.2 targets
+The live loading detection is build-specific. Version 2.2.3 targets
 against build `CL-301524_JKS-17219`. A game update may require new module offsets
 and a pointer-chain validation pass.
 

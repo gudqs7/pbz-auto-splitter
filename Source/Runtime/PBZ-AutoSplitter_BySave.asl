@@ -3,10 +3,11 @@
 state("PBZ"){}
 
 // LiveSplit 生命周期钩子：startup
-// 作用：加载 asl-help，并准备匹配语言的 Boss 设置 XML 延迟加载委托。
+// 作用：加载 asl-help，并立即加载匹配语言的 Boss 设置 XML。
 // 入参：无。LiveSplit 提供设置构建器。
 // 返回：null。
-// 原理：XML 只在 init 通过构建门禁后读取；存档读取 DLL 也稍后在 init 中加载。
+// 原理：XML 与游戏进程是否存在无关，因此在加载委托创建后立即读取；
+// 存档读取 DLL 仍在稍后的 init 中按需加载。
 startup
 {
     string componentDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Components");
@@ -40,6 +41,7 @@ startup
             }
         }
     });
+    ((Action)vars.LoadSettings)();
 }
 
 // LiveSplit 生命周期钩子：init
@@ -84,7 +86,7 @@ init
     if (target != null)
     {
         vars.Helper.Game = target;
-        ((Action)vars.LoadSettings)();
+        print("[PBZ] build gate: matched PBZ process, retry=" + findAttempt);
     }
     else
     {

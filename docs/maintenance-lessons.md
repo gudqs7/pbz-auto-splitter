@@ -45,10 +45,10 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
 
 ## 4. ASL 生命周期与状态约定
 
-- `startup` 在脚本加载或重载时执行，负责 `asl-help`、日志和延迟设置加载委托；
-  此时不读取 Boss 设置 XML。
-- `init` 在找到匹配的 PBZ 进程后执行，先绑定游戏并加载设置 XML，再创建固定偏移、
-  watcher、缓存和其他委托。
+- `startup` 在脚本加载或重载时执行，负责 `asl-help`、日志，并立即读取 Boss
+  设置 XML；设置不依赖游戏进程是否存在。
+- `init` 在找到匹配的 PBZ 进程后执行，绑定游戏并记录构建门禁结果，再创建固定偏移、
+  watcher、缓存和其他委托；不得重新加载设置 XML。
 - `update` 在 ASL 宿主定时器中运行；昂贵扫描通过 50 ms/100 ms 门控限频。
 - `start` 只在 NotRunning 阶段检查起始世界和 Loading 非零到零边沿。
 - `isLoading` 和 `split` 只在 Running/Paused 阶段调用。
@@ -106,8 +106,8 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
   -File .\Source\package_release.ps1 `
-  -Version 2.2.2 `
-  -OutputPath .\dist\PBZ_AutoSplit_2.2.2.zip
+  -Version 2.2.3 `
+  -OutputPath .\dist\PBZ_AutoSplit_2.2.3.zip
 ```
 
 3. 检查 ZIP 内 `.asl/.cs/.ps1/.xml` 均无注释。

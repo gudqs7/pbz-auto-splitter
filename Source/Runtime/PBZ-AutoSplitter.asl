@@ -10,11 +10,11 @@
 state("PBZ"){}
 
 // LiveSplit 生命周期钩子：startup
-// 作用：在游戏进程出现前初始化 helper、日志和延迟设置加载委托。
+// 作用：在游戏进程出现前初始化 helper、日志并立即加载 Boss 设置。
 // 入参：没有显式参数，LiveSplit 通过 ASL 注入设置构建器。
 // 返回：null。
-// 原理：每次脚本加载或重载只运行一次；XML 只在 init 通过构建门禁后读取，
-// 避免游戏尚未找到时加载设置。
+// 原理：每次脚本加载或重载只运行一次；XML 与游戏进程是否存在无关，
+// 因此在加载委托创建后立即读取。
 startup
 {
     // 从 LiveSplit 主程序位置解析 Components 目录。必须在运行时计算，
@@ -74,6 +74,7 @@ startup
             }
         }
     });
+    ((Action)vars.LoadSettings)();
 }
 
 // LiveSplit 生命周期钩子：init
@@ -137,12 +138,8 @@ init
     if (target != null)
     {
         vars.Helper.Game = target;
-        ((Action)vars.LoadSettings)();
-        if (findAttempt > 0)
-        {
-            ((Action<string>)vars.Log)(
-                "build gate: matched PBZ process after retry=" + findAttempt);
-        }
+        ((Action<string>)vars.Log)(
+            "build gate: matched PBZ process, retry=" + findAttempt);
     }
     else
     {

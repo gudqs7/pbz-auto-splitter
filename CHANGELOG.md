@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.2.3 - 2026-11-03
+
+- Loaded Boss settings XML immediately during ASL startup instead of waiting
+  for a supported PBZ game process to be matched.
+- Added one build-gate log for every successful or failed PBZ process match in
+  both runtime variants.
+- Added runtime checks that prevent settings loading from moving back into
+  `init`.
+
 ## 2.2.2 - 2026-11-02
 
 - Deferred Boss settings XML loading until a supported PBZ game process is

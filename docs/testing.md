@@ -81,7 +81,7 @@ Save-backed variant:
 
 ## Compatibility evidence
 
-Version 2.2.2 targets game build
+Version 2.2.3 targets game build
 `CL-301524_JKS-17219`. The clean-room decoder was byte-exact on nine real-save
 vectors. Last recorded local benchmark results:
 
