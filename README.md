@@ -5,7 +5,7 @@ while the game is loading, starts the timer when gameplay begins, and creates
 boss splits directly from live game memory. A save-backed variant remains
 available for comparison and fallback.
 
-> Compatibility: version 2.2.3 targets game build
+> Compatibility: version 2.2.4 targets game build
 > `CL-301524_JKS-17219`. Game updates can change the memory layout used for
 > loading detection and memory-only boss tracking. Save-file boss tracking and
 > the clean-room decoder are independent of those offsets.

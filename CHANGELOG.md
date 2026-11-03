@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.2.4 - 2026-11-04
+
+- Changed automatic start to trigger when transitioning from
+  `PBZ_StartMenu_CE_WP` into either `PBZ_WP_ZhuLinGuWu` or `PBZ_Xigu_WP`.
+- Applied the same start rule to both runtime variants while leaving Boss
+  detection and split behavior unchanged.
+
 ## 2.2.3 - 2026-11-03
 
 - Loaded Boss settings XML immediately during ASL startup instead of waiting

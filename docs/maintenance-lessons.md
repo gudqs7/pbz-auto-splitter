@@ -106,8 +106,8 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
   -File .\Source\package_release.ps1 `
-  -Version 2.2.3 `
-  -OutputPath .\dist\PBZ_AutoSplit_2.2.3.zip
+  -Version 2.2.4 `
+  -OutputPath .\dist\PBZ_AutoSplit_2.2.4.zip
 ```
 
 3. 检查 ZIP 内 `.asl/.cs/.ps1/.xml` 均无注释。

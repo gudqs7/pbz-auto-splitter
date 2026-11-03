@@ -341,11 +341,13 @@ update
 
 start
 {
-    if ((bool)vars.Paused) return false;
-    if ((string)vars.WorldName != "PBZ_WP_ZhuLinGuWu") return false;
-    if (current.Loading == null || old.Loading == null) return false;
+    if (old.WorldNameId == null || current.WorldNameId == null) return false;
 
-    return (byte)current.Loading == 0 && (byte)old.Loading != 0;
+    string previousWorld = (string)((Func<int, string>)vars.ReadFName)((int)old.WorldNameId);
+    string currentWorld = (string)((Func<int, string>)vars.ReadFName)((int)current.WorldNameId);
+
+    return previousWorld == "PBZ_StartMenu_CE_WP"
+        && (currentWorld == "PBZ_WP_ZhuLinGuWu" || currentWorld == "PBZ_Xigu_WP");
 }
 
 isLoading

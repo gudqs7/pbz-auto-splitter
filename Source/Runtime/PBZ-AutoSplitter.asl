@@ -1312,18 +1312,20 @@ update
 }
 
 // LiveSplit 生命周期钩子：start
-// 作用：只在已验证的起始世界完成加载后自动启动计时器。
+// 作用：从开始菜单进入已知起始世界时自动启动计时器。
 // 入参：current/old 状态字典和 vars。
-// 返回：Loading 从非零变为零的边沿上仅返回一次 true。
-// 原理：要求世界已验证且未暂停，并精确匹配已知起始地图；old 值由
-// LiveSplit 在 update 前的 ASL 状态快照提供。
+// 返回：上一世界为开始菜单，且当前世界为竹林谷屋或西谷时返回 true。
+// 原理：直接比较前后 WorldNameId 解码出的世界名；old 值由 LiveSplit
+// 在 update 前的 ASL 状态快照提供。
 start
 {
-    if ((bool)vars.Paused) return false;
-    if ((string)vars.WorldName != "PBZ_WP_ZhuLinGuWu") return false;
-    if (current.Loading == null || old.Loading == null) return false;
+    if (old.WorldNameId == null || current.WorldNameId == null) return false;
 
-    return (byte)current.Loading == 0 && (byte)old.Loading != 0;
+    string previousWorld = (string)((Func<int, string>)vars.ReadFName)((int)old.WorldNameId);
+    string currentWorld = (string)((Func<int, string>)vars.ReadFName)((int)current.WorldNameId);
+
+    return previousWorld == "PBZ_StartMenu_CE_WP"
+        && (currentWorld == "PBZ_WP_ZhuLinGuWu" || currentWorld == "PBZ_Xigu_WP");
 }
 
 // LiveSplit 生命周期钩子：isLoading
