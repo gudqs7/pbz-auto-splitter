@@ -1,13 +1,14 @@
 # Source overview
 
-`PBZ.SaveReader` is the managed save decoder loaded by
-`Components/PBZ-AutoSplitter_BySave.asl`.
+`PBZ.SaveReader` is the optional managed save decoder loaded only by the
+development `Components/PBZ-AutoSplitter_BySave.asl` variant. Release packages
+use the memory-only splitter and exclude this DLL.
 
 Editable splitter source lives in `Runtime/`. Generate comment-free files under
 `../Components` with `build_pbz_runtime.ps1`; generated runtime files must not be
 edited directly.
 
-The production path reads only the `__Advanced__` record:
+The save-backed development path reads only the `__Advanced__` record:
 
 ```text
 PBZS index -> AES-256-GCM decrypt -> OodleCleanRoom Mermaid
@@ -19,16 +20,26 @@ separate runtime assembly.
 
 ## Build
 
-Generate the PBZ ASL/XML runtime files:
+Generate the PBZ ASL/XML runtime files and one-click installer:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
   -File .\Source\build_pbz_runtime.ps1
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass `
+  -File .\Source\build_pbz_installer.ps1
 ```
 
-Build the save reader:
+Build the memory-only release ZIP:
 
 From the repository root:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass `
+  -File .\Source\package_release.ps1 -Version 2.2.5
+```
+
+Build the optional save reader for development:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
@@ -38,6 +49,12 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
 ## Test
 
 ```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass `
+  -File .\Source\test_pbz_runtime.ps1
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass `
+  -File .\Source\test_pbz_installer.ps1
+
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
   -File .\Source\test_pbzsavareader.ps1
 ```

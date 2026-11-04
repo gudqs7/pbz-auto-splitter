@@ -54,7 +54,7 @@ startup
 init
 {
 
-    string expectedBuild = "CL-301524_JKS-17219";
+    string expectedBuild = "CL-302256_JKS-17280";
     vars.FindGame = (Func<Process>)(() =>
     {
         Process best = null;
@@ -65,7 +65,7 @@ init
             {
                 int size = p.MainModule.ModuleMemorySize;
                 string build = p.MainModule.FileVersionInfo.FileVersion;
-                if (size == 0x1ec54000
+                if (size == 0x1e0bb000
                     && string.Equals(build, expectedBuild, StringComparison.Ordinal)
                     && size > bestSize)
                 {
@@ -98,10 +98,10 @@ init
         ((Action<string>)vars.Log)("build gate: no matching PBZ process");
     }
 
-    vars.Helper["World"] = vars.Helper.Make<long>(0xdf741c8, 0xc88, 0x78);
-    vars.Helper["WorldNameId"] = vars.Helper.Make<int>(0xdf741c8, 0xc88, 0x78, 0x18);
-    vars.Helper["Dest"] = vars.Helper.Make<long>(0xdf741c8, 0xc88, 0x80, 0x118, 0x248);
-    vars.Helper["Loading"] = vars.Helper.Make<byte>(0xdf741c8, 0xc88, 0x80, 0x118, 0x248, 0x250);
+    vars.Helper["World"] = vars.Helper.Make<long>(0xdfe9278, 0xc88, 0x78);
+    vars.Helper["WorldNameId"] = vars.Helper.Make<int>(0xdfe9278, 0xc88, 0x78, 0x18);
+    vars.Helper["Dest"] = vars.Helper.Make<long>(0xdfe9278, 0xc88, 0x80, 0x118, 0x248);
+    vars.Helper["Loading"] = vars.Helper.Make<byte>(0xdfe9278, 0xc88, 0x80, 0x118, 0x248, 0x250);
 
     vars.Helper["World"].FailAction = MemoryWatcher.ReadFailAction.SetZeroOrNull;
     vars.Helper["WorldNameId"].FailAction = MemoryWatcher.ReadFailAction.SetZeroOrNull;
@@ -112,8 +112,8 @@ init
     vars.LastNameId = -1;
     vars.Paused = true;
 
-    vars.DeadTagIndex = 0x538d8;
-    vars.ExcludeFromBossRecordTagIndex = 0xe23d08;
+    vars.DeadTagIndex = 0x53938;
+    vars.ExcludeFromBossRecordTagIndex = 0xe23867;
     vars.BossScanIntervalTicks = TimeSpan.TicksPerMillisecond * 50;
     vars.IdleBossScanIntervalTicks = TimeSpan.TicksPerMillisecond * 100;
     vars.PlayerReconcileIntervalTicks = TimeSpan.TicksPerSecond * 2;
@@ -143,10 +143,10 @@ init
 
         int blockIndex = nameId >> 16;
         int blockOffset = (nameId & 0xffff) * 2;
-        int blockCount = vars.Helper.Read<int>(0xdd11ac8);
+        int blockCount = vars.Helper.Read<int>(0xdd86ac8);
         if (blockIndex < 0 || blockIndex >= blockCount) return null;
 
-        long block = vars.Helper.Read<long>(0xdd11ac8 + 8 + blockIndex * 8);
+        long block = vars.Helper.Read<long>(0xdd86ac8 + 8 + blockIndex * 8);
         if (block == 0) return null;
 
         ushort header = vars.Helper.Read<ushort>((IntPtr)(block + blockOffset));
@@ -238,7 +238,7 @@ init
 
         byte[] header = vars.Helper.ReadSpan<byte>(
             0x10,
-            (IntPtr)(abilitySystem + 0xf48));
+            (IntPtr)(abilitySystem + 0xee8));
         if (header == null || header.Length != 0x10) return -1;
 
         long entries = BitConverter.ToInt64(header, 0x00);
@@ -327,7 +327,7 @@ init
         {
 
             long controller = vars.Helper.Read<long>(
-                0xdf741c8, 0xc88, 0x80, 0x38, 0x0, 0x30);
+                0xdfe9278, 0xc88, 0x80, 0x38, 0x0, 0x30);
             if (controller <= 0) return false;
 
             long player = vars.Helper.Read<long>((IntPtr)(controller + 0x358));
@@ -494,8 +494,8 @@ update
             || current.Dest == null || (long)current.Dest == 0
             || current.Loading == null) return;
 
-        long destClass = vars.Helper.Read<long>(0xe021828);
-        long recordClass = vars.Helper.Read<long>(0xdf741c8, 0xc88, 0x80, 0x118, 0x240);
+        long destClass = vars.Helper.Read<long>(0xe08d680);
+        long recordClass = vars.Helper.Read<long>(0xdfe9278, 0xc88, 0x80, 0x118, 0x240);
         if (destClass == 0 || recordClass != destClass)
         {
             invalidateCaches("dest-class-validation");

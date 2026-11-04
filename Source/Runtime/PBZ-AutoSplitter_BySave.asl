@@ -56,8 +56,9 @@ init
     // 保证静态偏移始终相对游戏模块计算。
     // FindGame 委托。
     // 入参：无。
-    // 返回：模块大小符合目标构建的 PBZ 进程，否则 null。
-    // 原理：通过模块大小排除同名引导进程或辅助进程。
+    // 返回：模块大小和文件版本都符合目标构建的 PBZ 进程，否则 null。
+    // 原理：通过精确构建门控排除同名引导进程、辅助进程和未验证的游戏更新。
+    string expectedBuild = "CL-302256_JKS-17280";
     vars.FindGame = (Func<Process>)(() =>
     {
         Process best = null;
@@ -67,11 +68,18 @@ init
             try
             {
                 int size = p.MainModule.ModuleMemorySize;
-                if (size > bestSize) { best = p; bestSize = size; }
+                string build = p.MainModule.FileVersionInfo.FileVersion;
+                if (size == 0x1e0bb000
+                    && string.Equals(build, expectedBuild, StringComparison.Ordinal)
+                    && size > bestSize)
+                {
+                    best = p;
+                    bestSize = size;
+                }
             }
             catch {}
         }
-        return bestSize == 0x1ec54000 ? best : null;
+        return best;
     });
 
     Process target = null;
@@ -94,10 +102,10 @@ init
         return;
     }
 
-    vars.Helper["World"] = vars.Helper.Make<long>(0xdf741c8, 0xc88, 0x78);
-    vars.Helper["WorldNameId"] = vars.Helper.Make<int>(0xdf741c8, 0xc88, 0x78, 0x18);
-    vars.Helper["Dest"] = vars.Helper.Make<long>(0xdf741c8, 0xc88, 0x80, 0x118, 0x248);
-    vars.Helper["Loading"] = vars.Helper.Make<byte>(0xdf741c8, 0xc88, 0x80, 0x118, 0x248, 0x250);
+    vars.Helper["World"] = vars.Helper.Make<long>(0xdfe9278, 0xc88, 0x78);
+    vars.Helper["WorldNameId"] = vars.Helper.Make<int>(0xdfe9278, 0xc88, 0x78, 0x18);
+    vars.Helper["Dest"] = vars.Helper.Make<long>(0xdfe9278, 0xc88, 0x80, 0x118, 0x248);
+    vars.Helper["Loading"] = vars.Helper.Make<byte>(0xdfe9278, 0xc88, 0x80, 0x118, 0x248, 0x250);
 
     vars.Helper["World"].FailAction = MemoryWatcher.ReadFailAction.SetZeroOrNull;
     vars.Helper["WorldNameId"].FailAction = MemoryWatcher.ReadFailAction.SetZeroOrNull;
@@ -117,10 +125,10 @@ init
     {
         int blockIndex = nameId >> 16;
         int blockOffset = (nameId & 0xffff) * 2;
-        int blockCount = vars.Helper.Read<int>(0xdd11ac8);
+        int blockCount = vars.Helper.Read<int>(0xdd86ac8);
         if (blockIndex < 0 || blockIndex >= blockCount) return null;
 
-        long block = vars.Helper.Read<long>(0xdd11ac8 + 8 + blockIndex * 8);
+        long block = vars.Helper.Read<long>(0xdd86ac8 + 8 + blockIndex * 8);
         if (block == 0) return null;
 
         ushort header = vars.Helper.Read<ushort>((IntPtr)(block + blockOffset));
@@ -358,8 +366,8 @@ update
             || current.Dest == null || (long)current.Dest == 0
             || current.Loading == null) return;
 
-        long destClass = vars.Helper.Read<long>(0xe021828);
-        long recordClass = vars.Helper.Read<long>(0xdf741c8, 0xc88, 0x80, 0x118, 0x240);
+        long destClass = vars.Helper.Read<long>(0xe08d680);
+        long recordClass = vars.Helper.Read<long>(0xdfe9278, 0xc88, 0x80, 0x118, 0x240);
         if (destClass == 0 || recordClass != destClass) return;
 
         int nameId = (int)current.WorldNameId;

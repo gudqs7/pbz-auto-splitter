@@ -2,11 +2,11 @@
 
 Unofficial LiveSplit auto splitter for Phantom Blade Zero. It pauses game time
 while the game is loading, starts the timer when gameplay begins, and creates
-boss splits directly from live game memory. A save-backed variant remains
-available for comparison and fallback.
+boss splits directly from live game memory. Release packages are memory-only;
+the save-backed variant remains in the source repository for legacy comparison.
 
-> Compatibility: version 2.2.4 targets game build
-> `CL-301524_JKS-17219`. Game updates can change the memory layout used for
+> Compatibility: version 2.2.5 targets game build
+> `CL-302256_JKS-17280`. Game updates can change the memory layout used for
 > loading detection and memory-only boss tracking. Save-file boss tracking and
 > the clean-room decoder are independent of those offsets.
 
@@ -18,14 +18,15 @@ available for comparison and fallback.
   keeping Boss detection and logging active.
 - Logging for Boss candidates that are present in combat but missing from the
   settings XML, without queuing a split.
-- A legacy save-file variant retained as `PBZ-AutoSplitter_BySave.asl`.
+- A one-click Windows installer that scans non-C drives, handles multiple
+  LiveSplit installations, copies the layout, and creates a launch shortcut.
 - Boss split groups with individual toggles in the LiveSplit settings.
 - Chinese and English boss settings selected automatically from the Windows UI
   language.
-- AES-256-GCM save container decryption.
-- Pure C# Oodle Mermaid decoding, with no external Oodle DLL required.
-- Automatic fallback to the Oodle decoder embedded in `PBZ.exe` when a future
-  save uses an unsupported Mermaid branch.
+
+The source repository also retains the optional save-backed variant, including
+AES-256-GCM container decryption and pure C# Oodle Mermaid decoding. Those files
+are intentionally excluded from release packages.
 
 ## Requirements
 
@@ -36,18 +37,19 @@ available for comparison and fallback.
 
 ## Installation
 
-1. Close LiveSplit.
-2. Copy the following items from `Components` into the LiveSplit `Components`
-   directory:
-   - `PBZ-AutoSplitter.asl` (memory-only, recommended)
-   - `PBZ-AutoSplitter_BySave.asl` (save-file variant, optional)
-   - `PBZ.BossSettings.xml`
-   - `PBZ.BossSettings.en.xml`
-   - `asl-help`
-   - `PBZSaveReader.dll` only when using the BySave variant
-3. Start LiveSplit.
-4. Add `PBZ-AutoSplitter.asl` as a Scriptable Auto Splitter.
-5. Enable the desired bosses under the auto splitter settings.
+1. Download and extract the release ZIP.
+2. Close LiveSplit.
+3. Run `Install-PBZ.bat`.
+4. The installer scans fixed drives other than C for `LiveSplit.exe`. If several
+   installations are found, choose the required one from the numbered list.
+5. The installer backs up files it will replace, copies the memory-only
+   components, `pbz.lsl`, and `pbz.lss`, then creates `LiveSplit-PBZ.exe.lnk` in
+   the selected LiveSplit directory.
+6. Start LiveSplit through the new shortcut and enable the desired Bosses.
+
+The release ZIP contains only the memory splitter, both Boss settings files,
+`asl-help`, the layout/run files, and the installer. It does not contain the
+save-backed variant, `PBZSaveReader.dll`, source code, or documentation.
 
 All Boss toggles are enabled by default. Use `AutoSplitEnabled` to disable
 automatic split triggering without disabling Boss detection or logging.
@@ -58,12 +60,12 @@ or not the game is running.
 death/destruction edges directly from the game process. It does not load
 `PBZSaveReader.dll`, inspect save files, or wait for a file write.
 
-`PBZ-AutoSplitter_BySave.asl` is the previous save-file implementation. Select
-it manually if you prefer save-backed kill tracking or need it as a comparison.
+`PBZ-AutoSplitter_BySave.asl` remains in the repository for save-backed
+development and comparison, but is not included in release packages.
 
 The script first looks for a settings file matching the full Windows UI culture,
 then the base language, such as `PBZ.BossSettings.en.xml`. If neither exists, it
-loads `PBZ.BossSettings.xml`. Keep both XML files next to the ASL and DLL.
+loads `PBZ.BossSettings.xml`. Keep both XML files next to the ASL.
 
 ## Usage
 
@@ -81,7 +83,7 @@ toggles to match the run category.
 
 ## Configuration
 
-The save reader supports these environment variables:
+The optional save-backed development variant supports these environment variables:
 
 | Variable | Default | Description |
 | --- | --- | --- |
@@ -94,12 +96,16 @@ Production use requires no Oodle DLL.
 ## Repository layout
 
 ```text
-Components/                 Runtime files copied into LiveSplit
-Source/Runtime/             Commented ASL and settings source
-Source/                     Runtime generator and rebuildable save-reader source
-Source/OodleCleanRoom/      Mermaid decoder, tests, and real-save vectors
-docs/                       Architecture, development, testing, and support
-AGENT.md                    Repository instructions for coding agents
+Install-PBZ.bat             Generated one-click installer
+lss-sample/pbz.lsl           Release layout
+lss-sample/pbz.lss           Optional starter split file
+Components/                  Generated runtime files
+Source/Runtime/              Commented ASL and settings source
+Source/Installer/            Installer source and package-time generator
+Source/                      Runtime generator and save-reader source
+Source/OodleCleanRoom/       Mermaid decoder, tests, and real-save vectors
+docs/                        Architecture, development, testing, and support
+AGENT.md                     Repository instructions for coding agents
 ```
 
 The files shipped under `Components`, including release archives and the local
@@ -117,6 +123,7 @@ generated ASL or XML directly.
 
 ## Scope and privacy
 
-This project reads local game save files only. It does not upload saves, game
+The default splitter reads local game process memory. The optional development
+variant can read local save files. The project does not upload saves, game
 binaries, telemetry, or personal data. Do not commit save files, crash dumps,
 logs containing account paths, or game executables to this repository.

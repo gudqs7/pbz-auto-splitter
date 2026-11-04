@@ -79,10 +79,28 @@ Save-backed variant:
 2. Start a new timer and confirm a Boss baseline is logged.
 3. Defeat one enabled test Boss and confirm one split is produced.
 
+## Installer and release package test
+
+After packaging:
+
+1. Extract the ZIP into an empty directory.
+2. Confirm it contains exactly the installer, `pbz.lsl`, `pbz.lss`, `asl-help`,
+   the memory ASL, and both Boss settings XML files.
+3. Create a disposable LiveSplit folder on a non-C drive with `LiveSplit.exe`.
+4. Run `Install-PBZ.bat`, select the disposable folder, and verify every runtime
+   file plus `pbz.lsl` and `pbz.lss` is copied.
+5. Open `LiveSplit-PBZ.exe.lnk` and confirm its target is the selected
+   `LiveSplit.exe`, its working directory is the LiveSplit folder, and its
+   arguments are exactly `-l pbz.lsl`.
+6. Modify an installed component, rerun the installer, and verify the previous
+   file is stored under `PBZ_Install_Backup_*`.
+7. Run the installer again with multiple disposable installations present and
+   verify the numbered selection path.
+
 ## Compatibility evidence
 
-Version 2.2.4 targets game build
-`CL-301524_JKS-17219`. The clean-room decoder was byte-exact on nine real-save
+Version 2.2.5 targets game build
+`CL-302256_JKS-17280`. The clean-room decoder was byte-exact on nine real-save
 vectors. Last recorded local benchmark results:
 
 | Backend | Approximate time |

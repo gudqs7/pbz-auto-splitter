@@ -31,7 +31,7 @@ The script could not find `PBZSaveGame.sav`.
 
 Memory-only variant:
 
-- The process must be the full `PBZ.exe` with module size `0x1EC54000`.
+- The process must be the full `PBZ.exe` with module size `0x1E0BB000`.
 - The Boss must appear in the player's `BeHatredList`.
 - The Boss class must have a matching enabled `Boss_BP_Monster_*` setting.
 - Check `Logs/PBZ-AutoSplitter.log` for `boss appeared`, `boss died`, and
@@ -51,10 +51,20 @@ Save-backed variant:
 - Inspect LiveSplit's script log for `[PBZ] boss kill`, `enabled=`, and
   `[PBZ] split ->` messages.
 
+## Installer cannot find LiveSplit
+
+- The installer scans fixed drives other than C. If LiveSplit is installed on C,
+  enter its folder path when prompted.
+- Close LiveSplit before installing; loaded components cannot always be replaced
+  while the process is running.
+- Large secondary drives may take a minute or more to scan.
+- If several installations are listed, choose the folder containing the
+  `LiveSplit.exe` that should receive the timer.
+
 ## Game time never pauses
 
-The live loading detection is build-specific. Version 2.2.4 targets
-against build `CL-301524_JKS-17219`. A game update may require new module offsets
+The live loading detection is build-specific. Version 2.2.5 targets
+build `CL-302256_JKS-17280`. A game update may require new module offsets
 and a pointer-chain validation pass.
 
 ## Decode error after a game update

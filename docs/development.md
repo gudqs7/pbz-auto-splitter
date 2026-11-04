@@ -52,8 +52,9 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
 ```
 
 The generator removes C#/ASL and XML comments, verifies the generated files, and
-compares SHA-256 hashes after synchronization. The packaging script applies the
-same sanitizer to every distributable ASL, C#, PowerShell, and XML file.
+compares SHA-256 hashes after synchronization. Release packaging validates the
+comment-free runtime set and builds the one-click installer from its readable
+source script.
 
 ## Build and test the decoder independently
 
@@ -69,23 +70,45 @@ Generated files go to `Source/OodleCleanRoom/bin` and are ignored by Git.
 
 ## Version updates
 
-Update the version in both places:
+Update the version in:
 
 - `Source/SaveReader.Api.cs`
+- `Source/package_release.ps1`
 - `CHANGELOG.md`
 
-Update `README.md` when compatibility or installation changes.
+Update `README.md` and release commands when compatibility or installation
+changes.
 
-## Packaging
+## Installer and packaging
 
-Create a versioned zip after tests pass:
+Regenerate the one-click installer after changing `Source/Installer/Install-PBZ.ps1`:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File .\Source\package_release.ps1 -Version 2.2.4
+  -File .\Source\build_pbz_installer.ps1
 ```
 
-The archive contains `Components`, `Source`, and top-level documentation.
+Create a versioned memory-only release ZIP after tests pass:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass `
+  -File .\Source\package_release.ps1 -Version 2.2.5
+```
+
+The archive contains exactly:
+
+```text
+Install-PBZ.bat
+pbz.lsl
+pbz.lss
+Components/asl-help
+Components/PBZ-AutoSplitter.asl
+Components/PBZ.BossSettings.xml
+Components/PBZ.BossSettings.en.xml
+```
+
+The save-backed ASL, `PBZSaveReader.dll`, `Source`, `docs`, README, and changelog
+are intentionally excluded.
 
 ## Source hygiene
 

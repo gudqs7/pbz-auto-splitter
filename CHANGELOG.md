@@ -1,5 +1,26 @@
 # Changelog
 
+## 2.2.5 - 2026-11-04
+
+- Updated the supported game build from `CL-301524_JKS-17219` to
+  `CL-302256_JKS-17280` and changed the module build gate to `0x1E0BB000`.
+- Relocated the live `GEngine`, Unreal name pool, and destination class slots for
+  the new executable layout.
+- Updated the `CharacterState.Dead` and
+  `CharacterType.AI.ExcludeFromBossRecord` FName ids and moved the ability-system
+  gameplay-tag count container to the new class layout.
+- Revalidated the loading, game-instance, player, character, attribute-set, and
+  boss tracking pointer offsets against the running game process.
+- Applied the exact build-version gate to the save-backed runtime variant as
+  well.
+- Added `Install-PBZ.bat`: it scans fixed non-C drives for LiveSplit, prompts
+  when multiple installations are present, backs up replaced files, copies the
+  memory-only components and layout files, and creates
+  `LiveSplit-PBZ.exe.lnk`.
+- Changed release ZIPs to memory-only packages containing the splitter, Boss
+  settings, `asl-help`, `pbz.lsl`, `pbz.lss`, and the installer. The save-backed
+  variant, save reader DLL, source tree, and documentation are excluded.
+
 ## 2.2.4 - 2026-11-04
 
 - Changed automatic start to trigger when transitioning from

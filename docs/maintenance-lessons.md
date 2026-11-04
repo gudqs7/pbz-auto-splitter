@@ -58,8 +58,8 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
 
 ## 5. GameplayTag 判定
 
-- `DeadTagIndex = 0x538D8` 对应 `CharacterState.Dead`。
-- `ExcludeFromBossRecordTagIndex = 0xE23D08` 对应
+- `DeadTagIndex = 0x53938` 对应 `CharacterState.Dead`。
+- `ExcludeFromBossRecordTagIndex = 0xE23867` 对应
   `CharacterType.AI.ExcludeFromBossRecord`。
 - `ReadTagFlags` 返回值：
   - `-1`：读取失败；
@@ -69,6 +69,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
   - `3`：两者均激活。
 - `-1` 的补码位模式也包含 bit 0/1，调用方必须先判断 `flags >= 0`，再做位测试。
 - Exclude 的优先级由调用方实现；出现 Exclude 时必须清除该 Actor 的打点状态。
+- `GameplayTagCountContainer` 位于 `PBZAbilitySystemComponent + 0xEE8`。
 - Tag 容器中的 `entryCount` 是不同 Tag 计数项数量，不是 Count 总和，也不是
   游戏中所有 Tag 的总数。`4096` 只是损坏保护上限。
 
@@ -106,15 +107,19 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
   -File .\Source\package_release.ps1 `
-  -Version 2.2.4 `
-  -OutputPath .\dist\PBZ_AutoSplit_2.2.4.zip
+  -Version 2.2.5 `
+  -OutputPath .\dist\PBZ_AutoSplit_2.2.5.zip
 ```
 
-3. 检查 ZIP 内 `.asl/.cs/.ps1/.xml` 均无注释。
-4. 同步本机 `Components` 并核对 SHA-256。
-5. 提交并推送 `main`。
-6. 使用 `gh release create` 创建 tag、Release 和 ZIP 资产。
-7. 用 `gh release view --json` 核对资产大小、digest 和 tag 目标提交。
+3. 检查 ZIP 只包含 `Install-PBZ.bat`、`pbz.lsl`、`pbz.lss`、`asl-help`、
+   内存版 ASL 和中英文设置 XML；不得包含存档版、`PBZSaveReader.dll`、
+   `Source`、`docs`、README 或 CHANGELOG。
+4. 在临时 LiveSplit 目录运行 `Install-PBZ.bat`，核对组件复制和快捷方式参数
+   `-l pbz.lsl`。
+5. 同步本机 `Components` 并核对 SHA-256。
+6. 提交并推送 `main`。
+7. 使用 `gh release create` 创建 tag、Release 和 ZIP 资产。
+8. 用 `gh release view --json` 核对资产大小、digest 和 tag 目标提交。
 
 ## 9. 常见坑
 
@@ -124,7 +129,8 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
 - 把 `-1` 当成普通位掩码，未先检查读取失败。
 - 把 `entryCount` 理解为所有 Tag Count 的总和。
 - 把 Actor 地址当作永久身份，忽略 UE 地址复用。
-- 发布 ZIP 后再次重建 DLL，却没有重新打包或同步。
+- 发布 ZIP 后再次重建组件，却没有重新打包或同步。
+- 把存档版、DLL、源码或文档误带进精简发布包。
 
 ## 10. 相关文档
 

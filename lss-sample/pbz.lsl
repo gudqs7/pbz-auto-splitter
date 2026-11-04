@@ -1,8 +1,8 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <Layout version="1.6.1">
   <Mode>Vertical</Mode>
-  <X>1600</X>
-  <Y>200</Y>
+  <X>1651</X>
+  <Y>352</Y>
   <VerticalWidth>231</VerticalWidth>
   <VerticalHeight>365</VerticalHeight>
   <HorizontalWidth>-1</HorizontalWidth>
@@ -286,11 +286,79 @@
       <Path>LiveSplit.ScriptableAutoSplit.dll</Path>
       <Settings>
         <Version>1.5</Version>
-        <ScriptPath>D:\soft\e-game\LiveSplit_1.8.29\Components\PBZ-AutoSplitter.asl</ScriptPath>
+        <ScriptPath>Components\PBZ-AutoSplitter.asl</ScriptPath>
         <Start>True</Start>
-        <CustomSettings />
+        <Split>True</Split>
+        <CustomSettings>
+          <Setting id="AutoSplitEnabled" type="bool">True</Setting>
+          <Setting id="BossSplits" type="bool">True</Setting>
+          <Setting id="MapPrologue" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_ZuoShang" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_HookMan_HorseCartCombat" type="bool">True</Setting>
+          <Setting id="MapWeepingCreek" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_YuCong_FirstTime" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_MobMan_Elite_Sword" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_PengMeng_Axe" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_AHua_GuiTouDao" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_HookMan" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_HookMan_P2" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_Scavenger" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_MoTian_LongZhu_01" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_MoTian" type="bool">True</Setting>
+          <Setting id="MapCrimsonForest" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_HuaQianXIao" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_JingYe" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_LuanShi" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_ChiLian" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_ChiLian_P2" type="bool">True</Setting>
+          <Setting id="MapVillageOfLu" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_Zhuobi" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_BiYuan" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_CanQu_BiHai" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_FemaleVessel_YuZan" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_MuXiaoKui" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_MuXiaoKui_P2" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_Danghui" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_QiShu_Huo" type="bool">True</Setting>
+          <Setting id="MapPangzhen" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_GuiChai_Red" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_GuiChai_Red_P2" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_GuiChai_Yellow_MoDao" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_WuXuan" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_GuWanYue" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_Maddoctor_Elite" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_ChangHong_Spear" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_ChangHong_P2" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_LionDancer" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_LionDancer_P2" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_GuiChai_Yellow_ShuangGou" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_QiShu_Lei" type="bool">True</Setting>
+          <Setting id="MapMandateEncampment" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_YuBi" type="bool">True</Setting>
+          <Setting id="MapMeiguLake" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_GuiChai_Cyan_ShuangYue" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_YanQianSui" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_QiShu_Du" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_FengXueDaoKe" type="bool">True</Setting>
+          <Setting id="MapMountainOfImprisonment" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_YanYan_Club" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_JadeMaskMan" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_MBoss" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_MBossVariants" type="bool">True</Setting>
+          <Setting id="MapMirageEstate" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_FemaleVessel_YuDing" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_YingMei_RedShadowBoneBlade" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_LeiDang" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_LeiDang_P2" type="bool">True</Setting>
+          <Setting id="MapMountSoulrend" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_PowerMan" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_PowerMan_P2" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_LengTu" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_MengHua" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_ZuoShang_Ending" type="bool">True</Setting>
+          <Setting id="Boss_BP_Monster_ZuoShang_P2" type="bool">True</Setting>
+        </CustomSettings>
       </Settings>
     </Component>
   </Components>
 </Layout>
-

@@ -20,6 +20,9 @@ GameplayTags, synchronization, or release work, read
   They check the full culture name, then the base language, before falling back
   to `Components/PBZ.BossSettings.xml`.
 - Only the BySave variant loads `Components/PBZSaveReader.dll`.
+- Release ZIPs are memory-only: include `PBZ-AutoSplitter.asl`, both settings
+  XML files, `asl-help`, `pbz.lsl`, `pbz.lss`, and `Install-PBZ.bat`. Exclude the
+  BySave ASL, `PBZSaveReader.dll`, `Source`, `docs`, README, and changelog.
 - `PBZSaveReader.dll` exposes `PBZ.SaveReader` and must remain compatible with
   the reflection calls made by the ASL.
 - `OodleCleanRoom` is compiled into `PBZSaveReader.dll`; it is not a separate
@@ -39,6 +42,10 @@ GameplayTags, synchronization, or release work, read
 - `Source/Runtime/PBZ-AutoSplitter_BySave.asl`: commented save-backed source.
 - `Source/Runtime/PBZ.BossSettings*.xml`: commented settings source.
 - `Source/build_pbz_runtime.ps1`: generates comment-free runtime files.
+- `Source/build_pbz_installer.ps1`: generates root `Install-PBZ.bat`.
+- `Source/Installer/Install-PBZ.ps1`: readable one-click installer source.
+- `Source/test_pbz_installer.ps1`: disposable-directory installer test.
+- `lss-sample/pbz.lsl` and `lss-sample/pbz.lss`: release layout and run files.
 - `docs/maintenance-lessons.md`: accumulated maintenance rules and technical
   pitfalls from PBZ implementation sessions.
 - `Components/*.asl` and `Components/PBZ.BossSettings*.xml`: generated runtime
@@ -63,10 +70,23 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
   -File .\Source\test_pbzsavareader.ps1
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass `
+  -File .\Source\test_pbz_installer.ps1
 ```
 
-For an end-to-end benchmark, pass a save path and, when needed, the game
-executable and an Oodle DLL path to `PBZSaveReader.Benchmark.exe`.
+Build the installer and release package with:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass `
+  -File .\Source\build_pbz_installer.ps1
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass `
+  -File .\Source\package_release.ps1 -Version 2.2.5
+```
+
+For an end-to-end save-reader benchmark, pass a save path and, when needed, the
+game executable and an Oodle DLL path to `PBZSaveReader.Benchmark.exe`.
 
 ## Runtime synchronization
 
@@ -94,7 +114,7 @@ executable and an Oodle DLL path to `PBZSaveReader.Benchmark.exe`.
   machine-specific absolute paths.
 - Do not change the default boss toggles without checking the XML against a
   real save and documenting the reason.
-- Memory offsets in both ASLs are tied to build `CL-301524_JKS-17219`.
+- Memory offsets in both ASLs are tied to build `CL-302256_JKS-17280`.
   Update them only with fresh validation and a build-version note.
 - Preserve the `PBZ.SaveReader` public API used by the ASL unless the ASL is
   updated in the same change.
@@ -104,11 +124,14 @@ executable and an Oodle DLL path to `PBZSaveReader.Benchmark.exe`.
 
 ## Release checklist
 
-1. Build `Components/PBZSaveReader.dll`.
-2. Run `Source/build_pbz_runtime.ps1`.
-3. Run the clean-room vector tests.
-4. Verify both generated ASLs contain no comments and still parse in LiveSplit.
-5. Smoke-test memory-only Boss detection and one enabled split.
-6. Repeat the same split with the BySave variant when touching save parsing.
-7. Update `Version` in `SaveReader.Api.cs`, `README.md`, and `CHANGELOG.md`.
-8. Package only after the repository is clean.
+1. Run `Source/build_pbz_runtime.ps1`.
+2. Run `Source/test_pbz_runtime.ps1`.
+3. Build `Source/build_pbz_installer.ps1`.
+4. Run `Source/package_release.ps1` and verify the ZIP contains exactly the
+   memory-only runtime, layout files, and installer.
+5. Test `Install-PBZ.bat` against a disposable LiveSplit directory, including
+   the shortcut target and `-l pbz.lsl` arguments.
+6. Smoke-test memory-only Boss detection and one enabled split.
+7. Repeat save-reader tests only when touching the optional development variant.
+8. Update `Version` in `SaveReader.Api.cs`, `README.md`, and `CHANGELOG.md`.
+9. Commit, push, tag, and attach the verified ZIP to the GitHub release.

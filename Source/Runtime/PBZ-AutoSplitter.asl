@@ -100,7 +100,7 @@ init
     // 返回：匹配的 Process，失败时返回 null。
     // 原理：遍历所有 PBZ 进程，跳过访问失败项，只接受模块大小和文件版本
     // 都与目标构建一致的进程。
-    string expectedBuild = "CL-301524_JKS-17219";
+    string expectedBuild = "CL-302256_JKS-17280";
     vars.FindGame = (Func<Process>)(() =>
     {
         Process best = null;
@@ -111,7 +111,7 @@ init
             {
                 int size = p.MainModule.ModuleMemorySize;
                 string build = p.MainModule.FileVersionInfo.FileVersion;
-                if (size == 0x1ec54000
+                if (size == 0x1e0bb000
                     && string.Equals(build, expectedBuild, StringComparison.Ordinal)
                     && size > bestSize)
                 {
@@ -150,10 +150,10 @@ init
     // 入参：每次 Make 调用接收模块相对基址偏移和后续指针链偏移。
     // 返回：映射到 current.World/current.Dest/current.Loading 的 watcher 对象。
     // 原理：asl-help 对每个中间 offset 先解引用指针，再在最终地址读取目标值。
-    vars.Helper["World"] = vars.Helper.Make<long>(0xdf741c8, 0xc88, 0x78);
-    vars.Helper["WorldNameId"] = vars.Helper.Make<int>(0xdf741c8, 0xc88, 0x78, 0x18);
-    vars.Helper["Dest"] = vars.Helper.Make<long>(0xdf741c8, 0xc88, 0x80, 0x118, 0x248);
-    vars.Helper["Loading"] = vars.Helper.Make<byte>(0xdf741c8, 0xc88, 0x80, 0x118, 0x248, 0x250);
+    vars.Helper["World"] = vars.Helper.Make<long>(0xdfe9278, 0xc88, 0x78);
+    vars.Helper["WorldNameId"] = vars.Helper.Make<int>(0xdfe9278, 0xc88, 0x78, 0x18);
+    vars.Helper["Dest"] = vars.Helper.Make<long>(0xdfe9278, 0xc88, 0x80, 0x118, 0x248);
+    vars.Helper["Loading"] = vars.Helper.Make<byte>(0xdfe9278, 0xc88, 0x80, 0x118, 0x248, 0x250);
 
     vars.Helper["World"].FailAction = MemoryWatcher.ReadFailAction.SetZeroOrNull;
     vars.Helper["WorldNameId"].FailAction = MemoryWatcher.ReadFailAction.SetZeroOrNull;
@@ -164,8 +164,8 @@ init
     vars.LastNameId = -1;
     vars.Paused = true;
 
-    vars.DeadTagIndex = 0x538d8;
-    vars.ExcludeFromBossRecordTagIndex = 0xe23d08;
+    vars.DeadTagIndex = 0x53938;
+    vars.ExcludeFromBossRecordTagIndex = 0xe23867;
     vars.BossScanIntervalTicks = TimeSpan.TicksPerMillisecond * 50;
     vars.IdleBossScanIntervalTicks = TimeSpan.TicksPerMillisecond * 100;
     vars.PlayerReconcileIntervalTicks = TimeSpan.TicksPerSecond * 2;
@@ -221,10 +221,10 @@ init
 
         int blockIndex = nameId >> 16;
         int blockOffset = (nameId & 0xffff) * 2;
-        int blockCount = vars.Helper.Read<int>(0xdd11ac8);
+        int blockCount = vars.Helper.Read<int>(0xdd86ac8);
         if (blockIndex < 0 || blockIndex >= blockCount) return null;
 
-        long block = vars.Helper.Read<long>(0xdd11ac8 + 8 + blockIndex * 8);
+        long block = vars.Helper.Read<long>(0xdd86ac8 + 8 + blockIndex * 8);
         if (block == 0) return null;
 
         ushort header = vars.Helper.Read<ushort>((IntPtr)(block + blockOffset));
@@ -344,7 +344,7 @@ init
     //    3 两个 Tag 均激活。
     // 注意：-1 的位模式也包含 bit 0/1，调用方必须先判断 flags >= 0，
     //       再使用 flags & 1 或 flags & 2。
-    // 原理：先读取 ASC+0xF48 的 TArray 头，再批量读取所有 0x10 字节 Tag
+    // 原理：先读取 ASC+0xEE8 的 TArray 头，再批量读取所有 0x10 字节 Tag
     // 计数项。调用方必须先处理 Exclude，再处理 Dead。
     vars.ReadTagFlags = (Func<long, int>)(abilitySystem =>
     {
@@ -352,7 +352,7 @@ init
 
         byte[] header = vars.Helper.ReadSpan<byte>(
             0x10,
-            (IntPtr)(abilitySystem + 0xf48));
+            (IntPtr)(abilitySystem + 0xee8));
         if (header == null || header.Length != 0x10) return -1;
 
         long entries = BitConverter.ToInt64(header, 0x00);
@@ -472,7 +472,7 @@ init
             // GEngine -> GameViewportClient -> GameInstance -> LocalPlayers[0]
             // -> LocalPlayer -> PlayerController -> AcknowledgedPawn.
             long controller = vars.Helper.Read<long>(
-                0xdf741c8, 0xc88, 0x80, 0x38, 0x0, 0x30);
+                0xdfe9278, 0xc88, 0x80, 0x38, 0x0, 0x30);
             if (controller <= 0) return false;
 
             long player = vars.Helper.Read<long>((IntPtr)(controller + 0x358));
@@ -720,8 +720,8 @@ update
 
         // DestClass 与 recordClass 必须指向同一世界类型。两者不一致通常意味着
         // 偏移失效、世界尚未构造完成，或当前仍处于菜单。
-        long destClass = vars.Helper.Read<long>(0xe021828);
-        long recordClass = vars.Helper.Read<long>(0xdf741c8, 0xc88, 0x80, 0x118, 0x240);
+        long destClass = vars.Helper.Read<long>(0xe08d680);
+        long recordClass = vars.Helper.Read<long>(0xdfe9278, 0xc88, 0x80, 0x118, 0x240);
         if (destClass == 0 || recordClass != destClass)
         {
             invalidateCaches("dest-class-validation");
