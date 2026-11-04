@@ -107,14 +107,14 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
   -File .\Source\package_release.ps1 `
-  -Version 2.2.5 `
-  -OutputPath .\dist\PBZ_AutoSplit_2.2.5.zip
+  -Version 2.2.6 `
+  -OutputPath .\dist\PBZ_AutoSplit_2.2.6.zip
 ```
 
-3. 检查 ZIP 只包含 `Install-PBZ.bat`、`pbz.lsl`、`pbz.lss`、`asl-help`、
+3. 检查 ZIP 只包含 `自动扫盘安装_介意勿点.bat`、`pbz.lsl`、`pbz.lss`、`asl-help`、
    内存版 ASL 和中英文设置 XML；不得包含存档版、`PBZSaveReader.dll`、
    `Source`、`docs`、README 或 CHANGELOG。
-4. 在临时 LiveSplit 目录运行 `Install-PBZ.bat`，核对组件复制和快捷方式参数
+4. 在临时 LiveSplit 目录运行 `自动扫盘安装_介意勿点.bat`，核对组件复制和快捷方式参数
    `-l pbz.lsl`。
 5. 同步本机 `Components` 并核对 SHA-256。
 6. 提交并推送 `main`。

@@ -9,7 +9,7 @@
 显式输出 zip 路径，默认是 dist\PBZ_AutoSplit_<Version>.zip。
 #>
 param(
-    [string]$Version = "2.2.5",
+    [string]$Version = "2.2.6",
     [string]$OutputPath
 )
 
@@ -22,7 +22,7 @@ if ([string]::IsNullOrWhiteSpace($OutputPath)) {
 
 & (Join-Path $sourceRoot "build_pbz_runtime.ps1") -RepositoryRoot $repositoryRoot
 & (Join-Path $sourceRoot "test_pbz_runtime.ps1") -RepositoryRoot $repositoryRoot
-& (Join-Path $sourceRoot "build_pbz_installer.ps1") -OutputPath (Join-Path $repositoryRoot "Install-PBZ.bat")
+& (Join-Path $sourceRoot "build_pbz_installer.ps1") -OutputPath (Join-Path $repositoryRoot "自动扫盘安装_介意勿点.bat")
 & (Join-Path $sourceRoot "test_pbz_installer.ps1")
 if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
@@ -37,7 +37,7 @@ $stage = Join-Path ([IO.Path]::GetTempPath()) ("pbz-auto-splitter-" + [Guid]::Ne
 try {
     New-Item -ItemType Directory -Path $stage -Force | Out-Null
 
-    Copy-Item -LiteralPath (Join-Path $repositoryRoot "Install-PBZ.bat") -Destination $stage
+    Copy-Item -LiteralPath (Join-Path $repositoryRoot "自动扫盘安装_介意勿点.bat") -Destination $stage
     foreach ($layoutName in @("pbz.lsl", "pbz.lss")) {
         Copy-Item -LiteralPath (Join-Path $repositoryRoot "lss-sample\$layoutName") -Destination $stage
     }
@@ -55,7 +55,7 @@ try {
     }
 
     $expected = @(
-        "Install-PBZ.bat",
+        "自动扫盘安装_介意勿点.bat",
         "pbz.lsl",
         "pbz.lss",
         "Components\asl-help",

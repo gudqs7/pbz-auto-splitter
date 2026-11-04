@@ -13,7 +13,7 @@ if ([string]::IsNullOrWhiteSpace($InstallRoot)) {
     $InstallRoot = $env:PBZ_INSTALL_ROOT
 }
 if ([string]::IsNullOrWhiteSpace($SourceRoot)) {
-    throw "安装器没有收到发布包目录。请直接运行发布包中的 Install-PBZ.bat。"
+    throw "安装器没有收到发布包目录。请直接运行发布包中的 自动扫盘安装_介意勿点.bat。"
 }
 $SourceRoot = [IO.Path]::GetFullPath($SourceRoot)
 

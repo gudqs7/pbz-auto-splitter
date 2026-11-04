@@ -5,7 +5,7 @@ while the game is loading, starts the timer when gameplay begins, and creates
 boss splits directly from live game memory. Release packages are memory-only;
 the save-backed variant remains in the source repository for legacy comparison.
 
-> Compatibility: version 2.2.5 targets game build
+> Compatibility: version 2.2.6 targets game build
 > `CL-302256_JKS-17280`. Game updates can change the memory layout used for
 > loading detection and memory-only boss tracking. Save-file boss tracking and
 > the clean-room decoder are independent of those offsets.
@@ -39,7 +39,7 @@ are intentionally excluded from release packages.
 
 1. Download and extract the release ZIP.
 2. Close LiveSplit.
-3. Run `Install-PBZ.bat`.
+3. Run `自动扫盘安装_介意勿点.bat`.
 4. The installer scans fixed drives other than C for `LiveSplit.exe`. If several
    installations are found, choose the required one from the numbered list.
 5. The installer backs up files it will replace, copies the memory-only
@@ -96,7 +96,7 @@ Production use requires no Oodle DLL.
 ## Repository layout
 
 ```text
-Install-PBZ.bat             Generated one-click installer
+自动扫盘安装_介意勿点.bat             Generated one-click installer
 lss-sample/pbz.lsl           Release layout
 lss-sample/pbz.lss           Optional starter split file
 Components/                  Generated runtime files

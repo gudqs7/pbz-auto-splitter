@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.2.6 - 2026-11-04
+
+- Renamed the one-click installer to `自动扫盘安装_介意勿点.bat`.
+- Rebuilt the memory-only release package with the renamed installer.
+
 ## 2.2.5 - 2026-11-04
 
 - Updated the supported game build from `CL-301524_JKS-17219` to

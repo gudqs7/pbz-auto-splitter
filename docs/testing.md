@@ -87,7 +87,7 @@ After packaging:
 2. Confirm it contains exactly the installer, `pbz.lsl`, `pbz.lss`, `asl-help`,
    the memory ASL, and both Boss settings XML files.
 3. Create a disposable LiveSplit folder on a non-C drive with `LiveSplit.exe`.
-4. Run `Install-PBZ.bat`, select the disposable folder, and verify every runtime
+4. Run `自动扫盘安装_介意勿点.bat`, select the disposable folder, and verify every runtime
    file plus `pbz.lsl` and `pbz.lss` is copied.
 5. Open `LiveSplit-PBZ.exe.lnk` and confirm its target is the selected
    `LiveSplit.exe`, its working directory is the LiveSplit folder, and its
@@ -99,7 +99,7 @@ After packaging:
 
 ## Compatibility evidence
 
-Version 2.2.5 targets game build
+Version 2.2.6 targets game build
 `CL-302256_JKS-17280`. The clean-room decoder was byte-exact on nine real-save
 vectors. Last recorded local benchmark results:
 

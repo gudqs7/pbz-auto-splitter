@@ -92,13 +92,13 @@ Create a versioned memory-only release ZIP after tests pass:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File .\Source\package_release.ps1 -Version 2.2.5
+  -File .\Source\package_release.ps1 -Version 2.2.6
 ```
 
 The archive contains exactly:
 
 ```text
-Install-PBZ.bat
+自动扫盘安装_介意勿点.bat
 pbz.lsl
 pbz.lss
 Components/asl-help

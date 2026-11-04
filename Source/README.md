@@ -36,7 +36,7 @@ From the repository root:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File .\Source\package_release.ps1 -Version 2.2.5
+  -File .\Source\package_release.ps1 -Version 2.2.6
 ```
 
 Build the optional save reader for development:

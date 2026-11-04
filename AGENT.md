@@ -21,7 +21,7 @@ GameplayTags, synchronization, or release work, read
   to `Components/PBZ.BossSettings.xml`.
 - Only the BySave variant loads `Components/PBZSaveReader.dll`.
 - Release ZIPs are memory-only: include `PBZ-AutoSplitter.asl`, both settings
-  XML files, `asl-help`, `pbz.lsl`, `pbz.lss`, and `Install-PBZ.bat`. Exclude the
+  XML files, `asl-help`, `pbz.lsl`, `pbz.lss`, and `自动扫盘安装_介意勿点.bat`. Exclude the
   BySave ASL, `PBZSaveReader.dll`, `Source`, `docs`, README, and changelog.
 - `PBZSaveReader.dll` exposes `PBZ.SaveReader` and must remain compatible with
   the reflection calls made by the ASL.
@@ -42,7 +42,7 @@ GameplayTags, synchronization, or release work, read
 - `Source/Runtime/PBZ-AutoSplitter_BySave.asl`: commented save-backed source.
 - `Source/Runtime/PBZ.BossSettings*.xml`: commented settings source.
 - `Source/build_pbz_runtime.ps1`: generates comment-free runtime files.
-- `Source/build_pbz_installer.ps1`: generates root `Install-PBZ.bat`.
+- `Source/build_pbz_installer.ps1`: generates root `自动扫盘安装_介意勿点.bat`.
 - `Source/Installer/Install-PBZ.ps1`: readable one-click installer source.
 - `Source/test_pbz_installer.ps1`: disposable-directory installer test.
 - `lss-sample/pbz.lsl` and `lss-sample/pbz.lss`: release layout and run files.
@@ -82,7 +82,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass `
   -File .\Source\build_pbz_installer.ps1
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
-  -File .\Source\package_release.ps1 -Version 2.2.5
+  -File .\Source\package_release.ps1 -Version 2.2.6
 ```
 
 For an end-to-end save-reader benchmark, pass a save path and, when needed, the
@@ -129,7 +129,7 @@ game executable and an Oodle DLL path to `PBZSaveReader.Benchmark.exe`.
 3. Build `Source/build_pbz_installer.ps1`.
 4. Run `Source/package_release.ps1` and verify the ZIP contains exactly the
    memory-only runtime, layout files, and installer.
-5. Test `Install-PBZ.bat` against a disposable LiveSplit directory, including
+5. Test `自动扫盘安装_介意勿点.bat` against a disposable LiveSplit directory, including
    the shortcut target and `-l pbz.lsl` arguments.
 6. Smoke-test memory-only Boss detection and one enabled split.
 7. Repeat save-reader tests only when touching the optional development variant.

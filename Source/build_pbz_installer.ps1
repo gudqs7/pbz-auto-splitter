@@ -5,7 +5,7 @@
 $ErrorActionPreference = "Stop"
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 if ([string]::IsNullOrWhiteSpace($OutputPath)) {
-    $OutputPath = Join-Path $repositoryRoot "Install-PBZ.bat"
+    $OutputPath = Join-Path $repositoryRoot "自动扫盘安装_介意勿点.bat"
 }
 
 $sourcePath = Join-Path $PSScriptRoot "Installer\Install-PBZ.ps1"
