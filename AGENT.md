@@ -95,7 +95,7 @@ game executable and an Oodle DLL path to `PBZSaveReader.Benchmark.exe`.
   generated outputs and must remain comment-free.
 - Run `Source/build_pbz_runtime.ps1 -SyncLiveSplit` to regenerate repository
   runtime files and synchronize the PBZ files into
-  `D:\soft\e-game\LiveSplit_1.8.29\Components`.
+  `D:\soft\e-game\LiveSplit_1.8.37\Components`.
 - Before synchronization, compare existing local runtime copies with the
   repository copies. A newer differing local file must be inspected and merged
   back into `Source/Runtime` before regeneration; never overwrite it blindly.

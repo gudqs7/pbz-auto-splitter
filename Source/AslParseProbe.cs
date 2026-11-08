@@ -19,6 +19,26 @@ internal static class AslParseProbe
 
         string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
         Environment.CurrentDirectory = baseDirectory;
+        AppDomain.CurrentDomain.AssemblyResolve += (_, eventArgs) =>
+        {
+            string assemblyName = new AssemblyName(eventArgs.Name).Name;
+            string[] searchDirectories =
+            {
+                baseDirectory,
+                Path.Combine(baseDirectory, "Components")
+            };
+
+            foreach (string directory in searchDirectories)
+            {
+                string candidate = Path.Combine(directory, assemblyName + ".dll");
+                if (File.Exists(candidate))
+                {
+                    return Assembly.LoadFrom(candidate);
+                }
+            }
+
+            return null;
+        };
         Assembly.LoadFrom(Path.Combine(baseDirectory, "LiveSplit.Core.dll"));
         Assembly scriptableAutoSplit = Assembly.LoadFrom(
             Path.Combine(baseDirectory, "Components", "LiveSplit.ScriptableAutoSplit.dll"));

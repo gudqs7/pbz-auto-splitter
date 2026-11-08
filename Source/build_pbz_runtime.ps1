@@ -20,7 +20,7 @@ PBZ_Release 仓库根目录，默认是本脚本目录的上级目录。
 param(
     [string]$RepositoryRoot = (Split-Path -Parent $PSScriptRoot),
     [string]$OutputDirectory,
-    [string]$LiveSplitComponentsPath = "D:\soft\e-game\LiveSplit_1.8.29\Components",
+    [string]$LiveSplitComponentsPath = "D:\soft\e-game\LiveSplit_1.8.37\Components",
     [switch]$SyncLiveSplit
 )
 

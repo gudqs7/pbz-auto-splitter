@@ -7,14 +7,14 @@ PBZ_Release 仓库根目录，默认是本脚本目录的上级目录。
 
 .PARAMETER LiveSplitRoot
 包含 LiveSplit.Core.dll 和 Scriptable Auto Splitter 组件的 LiveSplit
-安装目录，默认是 RepositoryRoot 的上级目录。
+安装目录，默认是 D:\soft\e-game\LiveSplit_1.8.37。
 
 .OUTPUTS
 输出 ASL_PARSE_OK 行，最后输出 PBZ_RUNTIME_TEST_OK。
 #>
 param(
     [string]$RepositoryRoot = (Split-Path -Parent $PSScriptRoot),
-    [string]$LiveSplitRoot = (Split-Path -Parent (Split-Path -Parent $PSScriptRoot))
+    [string]$LiveSplitRoot = "D:\soft\e-game\LiveSplit_1.8.37"
 )
 
 $ErrorActionPreference = "Stop"
